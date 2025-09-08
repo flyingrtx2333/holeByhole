@@ -1,0 +1,341 @@
+/* 
+  Localizable.strings (Chinese Simplified)
+  holeByhole
+
+  Created by 向钧升 on 2025/9/8.
+*/
+
+// MARK: - App Name
+"app.name" = "一洞一记";
+"app.subtitle" = "你的专属高尔夫日记";
+
+// MARK: - Tab Bar
+"tab.home" = "首页";
+"tab.courses" = "球场";
+"tab.diary" = "日记";
+"tab.stats" = "统计";
+"tab.settings" = "设置";
+
+// MARK: - Home
+"home.welcome" = "欢迎使用一洞一记";
+"home.start.new.round" = "开始新轮次";
+"home.browse.courses" = "浏览球场";
+"home.recent.activity" = "最近活动";
+"home.no.courses" = "暂无球场";
+"home.add.first.course" = "添加你的第一个高尔夫球场开始记录你的轮次";
+
+// MARK: - Courses
+"courses.title" = "球场";
+"courses.add.course" = "添加球场";
+"courses.search.placeholder" = "搜索球场...";
+"courses.no.courses" = "暂无球场";
+"courses.holes.recorded" = "个球洞已记录";
+"courses.course.details" = "球场详情";
+"courses.best.score" = "最佳成绩";
+"courses.average" = "平均";
+"courses.par" = "标准杆";
+"courses.holes" = "球洞";
+"courses.no.data" = "无数据";
+
+// MARK: - Course Management
+"course.add.title" = "添加球场";
+"course.name" = "球场名称";
+"course.location" = "位置（可选）";
+"course.save" = "保存";
+"course.cancel" = "取消";
+"course.selection.title" = "选择球场";
+"course.selection.search.placeholder" = "搜索球场...";
+"course.selection.holes.recorded" = "%d个球洞已记录";
+"course.name.required" = "球场名称不能为空";
+"course.exists" = "已存在同名球场";
+"course.save.failed" = "保存球场失败：%@";
+"course.add.holes.note" = "创建后可以为此球场添加球洞和录制视频。";
+
+// MARK: - Holes
+"hole.title" = "第%d洞";
+"hole.par" = "标准杆%d";
+"hole.score" = "成绩";
+"hole.notes" = "备注";
+"hole.weather" = "天气";
+"hole.mood" = "心情";
+"hole.strategy" = "策略";
+"hole.no.score" = "无成绩";
+"hole.no.records" = "暂无记录";
+"hole.start.recording" = "开始记录第%d洞的击球";
+"hole.record.hole" = "记录球洞";
+
+// MARK: - New Round
+"new.round.title" = "新轮次";
+"new.round.select.course" = "选择球场";
+"new.round.no.course" = "未选择球场";
+"new.round.hole.number" = "球洞号码";
+"new.round.club.type" = "球杆类型";
+"new.round.shot.type" = "击球类型";
+"new.round.start.recording" = "开始录制";
+
+// MARK: - Club Types
+"club.driver" = "一号木";
+"club.wood" = "木杆";
+"club.iron" = "铁杆";
+"club.wedge" = "挖起杆";
+"club.putter" = "推杆";
+"club.hybrid" = "混合杆";
+
+// MARK: - Shot Types
+"shot.tee" = "开球";
+"shot.fairway" = "球道";
+"shot.approach" = "攻果岭";
+"shot.chip" = "切球";
+"shot.putt" = "推杆";
+"shot.bunker" = "沙坑";
+
+// MARK: - Video Recording
+"video.recording.title" = "录制";
+"video.switch.camera" = "切换摄像头";
+"video.close" = "关闭";
+"video.save.title" = "保存视频";
+"video.thumbnail" = "缩略图";
+"video.tap.to.select" = "点击视频选择不同帧";
+"video.auto.select" = "自动选择";
+"video.information" = "视频信息";
+"video.duration" = "时长";
+"video.save.app.only" = "仅保存到应用";
+"video.save.app.photos" = "保存到应用和相册";
+"video.recording.failed" = "录制失败：%@";
+"video.processing" = "正在处理视频...";
+"video.processing.timeout" = "视频处理超时，请重试。";
+"camera.permission.required" = "需要摄像头权限";
+"camera.permission.message" = "此应用需要摄像头权限来录制视频。请在设置中启用摄像头权限。";
+"settings" = "设置";
+"validation.error" = "验证错误";
+"new.round.validation.no.course" = "开始录制前请先选择高尔夫球场。";
+
+// MARK: - Video Playback
+"video.playback.title" = "视频播放";
+"video.key.frames" = "关键帧";
+"video.speed" = "速度";
+"video.add.key.frame" = "添加关键帧";
+"video.no.key.frames" = "无关键帧";
+"video.key.frame.description" = "添加关键帧来标记视频中的重要时刻";
+
+// MARK: - Statistics
+"stats.title" = "统计";
+"stats.overview" = "概览";
+"stats.rounds.played" = "已打轮次";
+"stats.average.score" = "平均成绩";
+"stats.best.score" = "最佳成绩";
+"stats.total.par" = "总标准杆";
+"stats.score.distribution" = "成绩分布";
+"stats.performance.by.hole" = "各洞表现";
+"stats.club.usage" = "球杆使用";
+"stats.recent.performance" = "最近表现";
+"stats.no.statistics" = "暂无统计";
+"stats.start.recording" = "开始记录你的高尔夫轮次以查看统计数据和表现趋势";
+"stats.no.score.data" = "暂无成绩数据";
+"stats.no.club.data" = "暂无球杆使用数据";
+
+// MARK: - Time Ranges
+"time.all" = "全部时间";
+"time.last.week" = "最近一周";
+"time.last.month" = "最近一月";
+"time.last.year" = "最近一年";
+
+// MARK: - Diary
+"diary.title" = "日记";
+"diary.search.placeholder" = "搜索日记条目...";
+"diary.filter.all" = "全部";
+"diary.filter.videos" = "视频";
+"diary.filter.scores" = "成绩";
+"diary.filter.recent" = "最近";
+"diary.no.entries" = "无日记条目";
+"diary.start.recording" = "开始记录你的高尔夫轮次来建立你的日记";
+"diary.no.videos" = "暂无带视频的条目。录制一些视频来查看它们。";
+"diary.no.scores" = "暂无有成绩的轮次。为你的球洞添加成绩来跟踪进度。";
+"diary.no.recent" = "暂无最近活动。打一些高尔夫来查看你的最近轮次。";
+
+// MARK: - Settings
+"settings.title" = "设置";
+"settings.appearance" = "外观";
+"settings.follow.system.theme" = "跟随系统主题";
+"settings.dark.mode" = "深色模式";
+"settings.language" = "语言";
+"settings.data" = "数据";
+"settings.courses" = "球场";
+"settings.holes.recorded" = "已记录球洞";
+"settings.videos" = "视频";
+"settings.storage" = "存储";
+"settings.clear.all.data" = "清除所有数据";
+"settings.about" = "关于";
+"settings.about.holebyhole" = "关于一洞一记";
+"settings.version" = "版本";
+"settings.clear.data.alert" = "这将永久删除你的所有球场、球洞和视频。此操作无法撤销。";
+"settings.storage.used" = "已使用存储";
+"settings.video.files" = "视频文件";
+"settings.thumbnail.files" = "缩略图文件";
+"settings.clear.data.title" = "清除所有数据";
+"settings.delete" = "删除";
+
+// MARK: - About
+"about.title" = "关于";
+"about.description" = "一洞一记专为高尔夫爱好者设计，用于记录、回顾和分享他们的高尔夫体验。跟踪你的表现，录制挥杆视频，建立你的个人高尔夫日记。";
+"about.features" = "功能";
+"about.video.recording" = "视频录制";
+"about.video.recording.desc" = "录制你的挥杆和击球";
+"about.performance.tracking" = "表现跟踪";
+"about.performance.tracking.desc" = "跟踪成绩和统计数据";
+"about.course.management" = "球场管理";
+"about.course.management.desc" = "按球场和球洞组织";
+"about.personal.diary" = "个人日记";
+"about.personal.diary.desc" = "保存笔记和回忆";
+"about.built.with" = "使用SwiftUI和SwiftData构建";
+
+// MARK: - Common
+"common.done" = "完成";
+"common.cancel" = "取消";
+"common.save" = "保存";
+"common.edit" = "编辑";
+"common.delete" = "删除";
+"common.add" = "添加";
+"common.search" = "搜索";
+"common.loading" = "加载中...";
+"common.error" = "错误";
+"common.ok" = "确定";
+"common.yes" = "是";
+"common.no" = "否";
+
+// MARK: - Additional Home
+"home.title" = "首页";
+"hole.number" = "第%d洞";
+"par.number" = "标准杆%d";
+
+// MARK: - Additional Course
+"course.information" = "球场信息";
+"course.holes.recorded" = "%d个球洞已记录";
+"course.details" = "球场详情";
+"course.holes" = "球洞";
+
+// MARK: - Additional Hole
+"hole.information" = "球洞信息";
+"hole.number.label" = "球洞号码";
+"hole.records" = "记录";
+"hole.new" = "新球洞";
+"hole.record.video" = "录制视频";
+
+// MARK: - Additional New Round
+"new.round.hole" = "第%d洞";
+"new.round.club.type" = "球杆类型";
+"new.round.shot.type" = "击球类型";
+
+// MARK: - Additional Video
+"video.recording.error" = "错误";
+"video.recording.failed.message" = "录制失败：%@";
+
+// MARK: - Additional Stats
+"stats.time.range" = "时间范围";
+"stats.course" = "球场";
+"stats.all.courses" = "所有球场";
+
+// MARK: - Additional Diary
+"diary.filter" = "筛选";
+"diary.search.entries" = "搜索日记条目...";
+"diary.filter.all" = "全部";
+"diary.filter.videos" = "视频";
+"diary.filter.scores" = "成绩";
+"diary.filter.recent" = "最近";
+"diary.hole.number" = "第%d洞";
+"diary.score.format" = "成绩：%d (标准杆%d)";
+"diary.par.format" = "标准杆%d";
+"diary.no.entries.title" = "暂无日记条目";
+"diary.empty.message.all" = "开始录制您的高尔夫轮次来建立您的日记";
+"diary.empty.message.videos" = "暂无带视频的条目。录制一些视频来查看它们。";
+"diary.empty.message.scores" = "暂无有成绩的轮次。为您的球洞添加成绩来跟踪您的进步。";
+"diary.empty.message.recent" = "暂无最近活动。打一些高尔夫来查看您最近的轮次。";
+"hole.record.additional.info" = "附加信息";
+
+// MARK: - Stats View
+"stats.time.range.all" = "全部时间";
+"stats.time.range.last.week" = "上周";
+"stats.time.range.last.month" = "上月";
+"stats.time.range.last.year" = "去年";
+"stats.overview.title" = "概览";
+"stats.rounds.played" = "已打轮次";
+"stats.average.score" = "平均成绩";
+"stats.best.score" = "最佳成绩";
+"stats.total.par" = "总标准杆";
+"stats.score.distribution" = "成绩分布";
+"stats.performance.by.hole" = "各洞表现";
+"stats.club.usage" = "球杆使用";
+"stats.recent.performance" = "最近表现";
+"stats.no.score.data" = "暂无成绩数据";
+"stats.no.club.data" = "暂无球杆使用数据";
+"stats.no.statistics.title" = "暂无统计数据";
+"stats.no.statistics.message" = "开始录制您的高尔夫轮次来查看您的统计数据和表现趋势";
+"stats.hole.number" = "第%d洞";
+"stats.par.format" = "标准杆%d";
+"hole.front" = "前";
+"hole.back" = "后";
+"hole.front.number" = "前%d洞";
+"hole.back.number" = "后%d洞";
+"hole.side.front" = "前9洞";
+"hole.side.back" = "后9洞";
+"hole.side" = "球洞区域";
+
+// MARK: - Additional UI Elements
+"ui.holes" = "个球洞";
+"ui.recorded" = "已记录";
+"ui.no.data" = "无数据";
+"ui.video" = "个视频";
+"ui.videos" = "个视频";
+
+// MARK: - Video Save Options
+"video.save.thumbnail" = "缩略图";
+"video.save.tap.to.select" = "点击视频选择不同帧";
+"video.save.auto.select" = "自动选择";
+"video.save.information" = "视频信息";
+"video.save.duration" = "时长";
+"video.save.hole" = "球洞";
+"video.save.course" = "球场";
+"video.save.club" = "球杆";
+"video.save.shot" = "击球";
+"video.save.app.only" = "仅保存到应用";
+"video.save.app.photos" = "保存到应用和相册";
+"video.save.failed.photos" = "保存到相册失败：%@";
+"video.save.photos.denied" = "相册访问被拒绝";
+"video.save.failed.database" = "保存视频失败：%@";
+"video.no.thumbnail" = "无缩略图";
+
+// MARK: - Edit Hole
+"edit.hole.title" = "编辑球洞";
+"edit.hole.information" = "球洞信息";
+"edit.hole.number" = "球洞号码";
+"edit.hole.par" = "标准杆";
+"edit.hole.score" = "成绩";
+"edit.hole.notes" = "备注";
+"edit.hole.weather" = "天气";
+"edit.hole.mood" = "心情";
+"edit.hole.strategy" = "策略";
+
+// MARK: - Hole Record Detail
+"hole.record.detail.title" = "球洞记录";
+"hole.record.score" = "成绩";
+"hole.record.no.score" = "无成绩";
+"hole.record.par" = "标准杆";
+"hole.record.videos" = "视频";
+"hole.record.no.videos" = "无视频";
+"hole.record.notes" = "备注";
+"hole.record.weather" = "天气";
+"hole.record.mood" = "心情";
+"hole.record.strategy" = "策略";
+
+// MARK: - Edit Hole Additional
+"edit.hole.additional.information" = "附加信息";
+"edit.hole.videos" = "视频";
+"edit.hole.no.videos.recorded" = "暂无录制视频";
+"edit.hole.duration" = "时长";
+"edit.hole.score.placeholder" = "成绩";
+
+// MARK: - Diary Delete Confirmation
+"diary.delete.confirmation" = "确定要删除选中的日记记录吗？这将同时删除相关的视频文件。此操作无法撤销。";
+
+// MARK: - Video Delete Confirmation
+"video.delete.confirmation" = "确定要删除这个视频吗？这将同时删除视频文件和缩略图。此操作无法撤销。";

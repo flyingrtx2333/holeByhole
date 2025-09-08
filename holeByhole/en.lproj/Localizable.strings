@@ -1,0 +1,341 @@
+/* 
+  Localizable.strings
+  holeByhole
+
+  Created by 向钧升 on 2025/9/8.
+*/
+
+// MARK: - App Name
+"app.name" = "holeByhole";
+"app.subtitle" = "Your Personal Golf Diary";
+
+// MARK: - Tab Bar
+"tab.home" = "Home";
+"tab.courses" = "Courses";
+"tab.diary" = "Diary";
+"tab.stats" = "Stats";
+"tab.settings" = "Settings";
+
+// MARK: - Home
+"home.welcome" = "Welcome to holeByhole";
+"home.start.new.round" = "Start New Round";
+"home.browse.courses" = "Browse Courses";
+"home.recent.activity" = "Recent Activity";
+"home.no.courses" = "No Courses Yet";
+"home.add.first.course" = "Add your first golf course to start recording your rounds";
+
+// MARK: - Courses
+"courses.title" = "Courses";
+"courses.add.course" = "Add Course";
+"courses.search.placeholder" = "Search courses...";
+"courses.no.courses" = "No Courses Yet";
+"courses.holes.recorded" = "holes recorded";
+"courses.course.details" = "Course Details";
+"courses.best.score" = "Best Score";
+"courses.average" = "Average";
+"courses.par" = "Par";
+"courses.holes" = "Holes";
+"courses.no.data" = "No data";
+
+// MARK: - Course Management
+"course.add.title" = "Add Course";
+"course.name" = "Course Name";
+"course.location" = "Location (Optional)";
+"course.save" = "Save";
+"course.cancel" = "Cancel";
+"course.selection.title" = "Select Course";
+"course.selection.search.placeholder" = "Search courses...";
+"course.selection.holes.recorded" = "%d holes recorded";
+"course.name.required" = "Course name cannot be empty";
+"course.exists" = "A course with this name already exists";
+"course.save.failed" = "Failed to save course: %@";
+"course.add.holes.note" = "You can add holes and record videos for this course after creating it.";
+
+// MARK: - Holes
+"hole.title" = "Hole %d";
+"hole.par" = "Par %d";
+"hole.score" = "Score";
+"hole.notes" = "Notes";
+"hole.weather" = "Weather";
+"hole.mood" = "Mood";
+"hole.strategy" = "Strategy";
+"hole.no.score" = "No Score";
+"hole.no.records" = "No Records Yet";
+"hole.start.recording" = "Start recording your shots for Hole %d";
+"hole.record.hole" = "Record Hole";
+
+// MARK: - New Round
+"new.round.title" = "New Round";
+"new.round.select.course" = "Select Course";
+"new.round.no.course" = "No Course Selected";
+"new.round.hole.number" = "Hole Number";
+"new.round.club.type" = "Club Type";
+"new.round.shot.type" = "Shot Type";
+"new.round.start.recording" = "Start Recording";
+
+// MARK: - Club Types
+"club.driver" = "Driver";
+"club.wood" = "Wood";
+"club.iron" = "Iron";
+"club.wedge" = "Wedge";
+"club.putter" = "Putter";
+"club.hybrid" = "Hybrid";
+
+// MARK: - Shot Types
+"shot.tee" = "Tee Shot";
+"shot.fairway" = "Fairway";
+"shot.approach" = "Approach";
+"shot.chip" = "Chip";
+"shot.putt" = "Putt";
+"shot.bunker" = "Bunker";
+
+// MARK: - Video Recording
+"video.recording.title" = "Recording";
+"video.switch.camera" = "Switch Camera";
+"video.close" = "Close";
+"video.save.title" = "Save Video";
+"video.thumbnail" = "Thumbnail";
+"video.tap.to.select" = "Tap video to select different frame";
+"video.auto.select" = "Auto Select";
+"video.information" = "Video Information";
+"video.duration" = "Duration";
+"video.save.app.only" = "Save to App Only";
+"video.save.app.photos" = "Save to App & Photos";
+"video.recording.failed" = "Recording failed: %@";
+"video.processing" = "Processing Video...";
+"video.processing.timeout" = "Video processing timed out. Please try again.";
+"camera.permission.required" = "Camera Permission Required";
+"camera.permission.message" = "This app needs camera access to record videos. Please enable camera permission in Settings.";
+"settings" = "Settings";
+"validation.error" = "Validation Error";
+"new.round.validation.no.course" = "Please select a golf course before starting recording.";
+
+// MARK: - Video Playback
+"video.playback.title" = "Video Playback";
+"video.key.frames" = "Key Frames";
+"video.speed" = "Speed";
+"video.add.key.frame" = "Add Key Frame";
+"video.no.key.frames" = "No Key Frames";
+"video.key.frame.description" = "Add key frames to mark important moments in your video";
+
+// MARK: - Statistics
+"stats.title" = "Statistics";
+"stats.overview" = "Overview";
+"stats.rounds.played" = "Rounds Played";
+"stats.average.score" = "Average Score";
+"stats.best.score" = "Best Score";
+"stats.total.par" = "Total Par";
+"stats.score.distribution" = "Score Distribution";
+"stats.performance.by.hole" = "Performance by Hole";
+"stats.club.usage" = "Club Usage";
+"stats.recent.performance" = "Recent Performance";
+"stats.no.statistics" = "No Statistics Yet";
+"stats.start.recording" = "Start recording your golf rounds to see your statistics and performance trends";
+"stats.no.score.data" = "No score data available";
+"stats.no.club.data" = "No club usage data available";
+
+// MARK: - Time Ranges
+"time.all" = "All Time";
+"time.last.week" = "Last Week";
+"time.last.month" = "Last Month";
+"time.last.year" = "Last Year";
+
+// MARK: - Diary
+"diary.title" = "Diary";
+"diary.search.placeholder" = "Search diary entries...";
+"diary.filter.all" = "All";
+"diary.filter.videos" = "Videos";
+"diary.filter.scores" = "Scores";
+"diary.filter.recent" = "Recent";
+"diary.no.entries" = "No Diary Entries";
+"diary.start.recording" = "Start recording your golf rounds to build your diary";
+"diary.no.videos" = "No entries with videos yet. Record some videos to see them here.";
+"diary.no.scores" = "No scored rounds yet. Add scores to your holes to track your progress.";
+"diary.no.recent" = "No recent activity. Play some golf to see your recent rounds here.";
+
+// MARK: - Settings
+"settings.title" = "Settings";
+"settings.appearance" = "Appearance";
+"settings.follow.system.theme" = "Follow System Theme";
+"settings.dark.mode" = "Dark Mode";
+"settings.language" = "Language";
+"settings.data" = "Data";
+"settings.courses" = "Courses";
+"settings.holes.recorded" = "Holes Recorded";
+"settings.videos" = "Videos";
+"settings.storage" = "Storage";
+"settings.clear.all.data" = "Clear All Data";
+"settings.about" = "About";
+"settings.about.holebyhole" = "About holeByhole";
+"settings.version" = "Version";
+"settings.clear.data.alert" = "This will permanently delete all your courses, holes, and videos. This action cannot be undone.";
+"settings.storage.used" = "Storage Used";
+"settings.video.files" = "Video Files";
+"settings.thumbnail.files" = "Thumbnail Files";
+"settings.clear.data.title" = "Clear All Data";
+"settings.delete" = "Delete";
+
+// MARK: - About
+"about.title" = "About";
+"about.description" = "holeByhole is designed for golf enthusiasts to record, review, and share their golfing experience. Track your performance, record videos of your swings, and build your personal golf diary.";
+"about.features" = "Features";
+"about.video.recording" = "Video Recording";
+"about.video.recording.desc" = "Record your swings and shots";
+"about.performance.tracking" = "Performance Tracking";
+"about.performance.tracking.desc" = "Track scores and statistics";
+"about.course.management" = "Course Management";
+"about.course.management.desc" = "Organize by course and hole";
+"about.personal.diary" = "Personal Diary";
+"about.personal.diary.desc" = "Keep notes and memories";
+"about.built.with" = "Built with SwiftUI and SwiftData";
+
+// MARK: - Common
+"common.done" = "Done";
+"common.cancel" = "Cancel";
+"common.save" = "Save";
+"common.edit" = "Edit";
+"common.delete" = "Delete";
+"common.add" = "Add";
+"common.search" = "Search";
+"common.loading" = "Loading...";
+"common.error" = "Error";
+"common.ok" = "OK";
+"common.yes" = "Yes";
+"common.no" = "No";
+
+// MARK: - Additional Home
+"home.title" = "Home";
+"hole.number" = "Hole %d";
+"par.number" = "Par %d";
+
+// MARK: - Additional Course
+"course.information" = "Course Information";
+"course.holes.recorded" = "%d holes recorded";
+"course.details" = "Course Details";
+"course.holes" = "Holes";
+
+// MARK: - Additional Hole
+"hole.information" = "Hole Information";
+"hole.number.label" = "Hole Number";
+"hole.records" = "Records";
+"hole.new" = "New Hole";
+"hole.record.video" = "Record Video";
+
+// MARK: - Additional New Round
+"new.round.hole" = "Hole %d";
+"new.round.club.type" = "Club Type";
+"new.round.shot.type" = "Shot Type";
+
+// MARK: - Additional Video
+"video.recording.error" = "Error";
+"video.recording.failed.message" = "Recording failed: %@";
+
+// MARK: - Additional Stats
+"stats.time.range" = "Time Range";
+"stats.course" = "Course";
+"stats.all.courses" = "All Courses";
+
+// MARK: - Additional Diary
+"diary.filter" = "Filter";
+"diary.search.entries" = "Search diary entries...";
+"diary.filter.all" = "All";
+"diary.filter.videos" = "Videos";
+"diary.filter.scores" = "Scores";
+"diary.filter.recent" = "Recent";
+"diary.hole.number" = "Hole %d";
+"diary.score.format" = "Score: %d (Par %d)";
+"diary.par.format" = "Par %d";
+"diary.no.entries.title" = "No Diary Entries";
+"diary.empty.message.all" = "Start recording your golf rounds to build your diary";
+"diary.empty.message.videos" = "No entries with videos yet. Record some videos to see them here.";
+"diary.empty.message.scores" = "No scored rounds yet. Add scores to your holes to track your progress.";
+"diary.empty.message.recent" = "No recent activity. Play some golf to see your recent rounds here.";
+"hole.record.additional.info" = "Additional Information";
+
+// MARK: - Stats View
+"stats.time.range.all" = "All Time";
+"stats.time.range.last.week" = "Last Week";
+"stats.time.range.last.month" = "Last Month";
+"stats.time.range.last.year" = "Last Year";
+"stats.overview.title" = "Overview";
+"stats.rounds.played" = "Rounds Played";
+"stats.average.score" = "Average Score";
+"stats.best.score" = "Best Score";
+"stats.total.par" = "Total Par";
+"stats.score.distribution" = "Score Distribution";
+"stats.performance.by.hole" = "Performance by Hole";
+"stats.club.usage" = "Club Usage";
+"stats.recent.performance" = "Recent Performance";
+"stats.no.score.data" = "No score data available";
+"stats.no.club.data" = "No club usage data available";
+"stats.no.statistics.title" = "No Statistics Yet";
+"stats.no.statistics.message" = "Start recording your golf rounds to see your statistics and performance trends";
+"stats.hole.number" = "Hole %d";
+"stats.par.format" = "Par %d";
+"hole.front" = "Front";
+"hole.back" = "Back";
+"hole.front.number" = "Front %d";
+"hole.back.number" = "Back %d";
+"hole.side.front" = "Front 9";
+"hole.side.back" = "Back 9";
+"hole.side" = "Hole Side";
+
+// MARK: - Additional UI Elements
+"ui.holes" = "holes";
+"ui.recorded" = "recorded";
+"ui.no.data" = "No data";
+"ui.video" = "video";
+"ui.videos" = "videos";
+
+// MARK: - Video Save Options
+"video.save.thumbnail" = "Thumbnail";
+"video.save.tap.to.select" = "Tap video to select different frame";
+"video.save.auto.select" = "Auto Select";
+"video.save.information" = "Video Information";
+"video.save.duration" = "Duration";
+"video.save.hole" = "Hole";
+"video.save.course" = "Course";
+"video.save.club" = "Club";
+"video.save.shot" = "Shot";
+"video.save.app.only" = "Save to App Only";
+"video.save.app.photos" = "Save to App & Photos";
+"video.save.failed.photos" = "Failed to save to Photos: %@";
+"video.save.photos.denied" = "Photo library access denied";
+"video.save.failed.database" = "Failed to save video: %@";
+"video.no.thumbnail" = "No Thumbnail";
+
+// MARK: - Edit Hole
+"edit.hole.title" = "Edit Hole";
+"edit.hole.information" = "Hole Information";
+"edit.hole.number" = "Hole Number";
+"edit.hole.par" = "Par";
+"edit.hole.score" = "Score";
+"edit.hole.notes" = "Notes";
+"edit.hole.weather" = "Weather";
+"edit.hole.mood" = "Mood";
+"edit.hole.strategy" = "Strategy";
+
+// MARK: - Hole Record Detail
+"hole.record.detail.title" = "Hole Record";
+"hole.record.score" = "Score";
+"hole.record.no.score" = "No Score";
+"hole.record.par" = "Par";
+"hole.record.videos" = "Videos";
+"hole.record.no.videos" = "No Videos";
+"hole.record.notes" = "Notes";
+"hole.record.weather" = "Weather";
+"hole.record.mood" = "Mood";
+"hole.record.strategy" = "Strategy";
+
+// MARK: - Edit Hole Additional
+"edit.hole.additional.information" = "Additional Information";
+"edit.hole.videos" = "Videos";
+"edit.hole.no.videos.recorded" = "No videos recorded";
+"edit.hole.duration" = "Duration";
+"edit.hole.score.placeholder" = "Score";
+
+// MARK: - Diary Delete Confirmation
+"diary.delete.confirmation" = "Are you sure you want to delete the selected diary entries? This will also delete the associated video files. This action cannot be undone.";
+
+// MARK: - Video Delete Confirmation
+"video.delete.confirmation" = "Are you sure you want to delete this video? This will also delete the video file and thumbnail. This action cannot be undone.";
