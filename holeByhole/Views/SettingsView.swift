@@ -153,8 +153,13 @@ struct SettingsView: View {
             modelContext.delete(hole)
         }
         
-        // Delete all courses
+        // Delete all courses and their photos
         for course in courses {
+            // Delete course photo if exists
+            if let photoPath = course.photoPath {
+                AppFileManager.shared.deleteCoursePhoto(at: photoPath)
+            }
+            
             modelContext.delete(course)
         }
         
@@ -247,7 +252,7 @@ struct AboutView: View {
 }
 
 struct StorageInfoView: View {
-    @State private var storageInfo: (videosCount: Int, thumbnailsCount: Int, totalSize: Int64) = (0, 0, 0)
+    @State private var storageInfo: (videosCount: Int, thumbnailsCount: Int, coursePhotosCount: Int, totalSize: Int64) = (0, 0, 0, 0)
     @StateObject private var localizationManager = LocalizationManager.shared
     
     var body: some View {
@@ -276,6 +281,15 @@ struct StorageInfoView: View {
                 Text("settings.thumbnail.files".localized)
                 Spacer()
                 Text("\(storageInfo.thumbnailsCount)")
+                    .foregroundColor(.secondary)
+            }
+            
+            HStack {
+                Image(systemName: "map.fill")
+                    .foregroundColor(.green)
+                Text("settings.course.photos".localized)
+                Spacer()
+                Text("\(storageInfo.coursePhotosCount)")
                     .foregroundColor(.secondary)
             }
         }

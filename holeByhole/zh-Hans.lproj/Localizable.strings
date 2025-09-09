@@ -46,6 +46,7 @@
 "course.selection.title" = "选择球场";
 "course.selection.search.placeholder" = "搜索球场...";
 "course.selection.holes.recorded" = "%d个球洞已记录";
+"course.selection.rounds.count" = "%d个轮次";
 "course.name.required" = "球场名称不能为空";
 "course.exists" = "已存在同名球场";
 "course.save.failed" = "保存球场失败：%@";
@@ -357,3 +358,115 @@
 "video.key.frame.timestamp" = "时间戳";
 "video.key.frame.time.placeholder" = "时间";
 "video.key.frame.options" = "关键帧选项";
+
+// MARK: - Round Management
+"new.round.title" = "新轮次";
+"new.round.description" = "选择球场开始新的高尔夫轮次";
+"new.round.select.course" = "选择球场";
+"new.round.no.course" = "请选择球场";
+"new.round.create" = "创建轮次";
+"new.round.creating" = "创建中...";
+"new.round.validation.no.course" = "请先选择球场";
+"new.round.create.failed" = "创建轮次失败：%@";
+
+"course.rounds.count" = "%d个轮次";
+"course.rounds" = "轮次";
+"course.no.rounds" = "暂无轮次";
+"course.start.first.round" = "点击右上角按钮开始你的第一个轮次";
+"course.total.rounds" = "总轮次";
+"course.completed.rounds" = "已完成";
+"course.total.holes" = "总球洞";
+
+"round.details" = "轮次详情";
+"round.total.holes" = "总球洞";
+"round.completed.holes" = "已完成";
+"round.total.score" = "总成绩";
+"round.status" = "轮次状态";
+"round.completed" = "已完成";
+"round.weather" = "天气";
+"round.weather.placeholder" = "输入天气情况";
+"round.notes" = "备注";
+"round.notes.placeholder" = "输入轮次备注";
+"round.edit" = "编辑轮次";
+"round.save.failed" = "保存轮次失败";
+"round.holes.completed" = "已完成 %d/%d 个球洞";
+
+"ui.rounds" = "轮次";
+"ui.holes" = "球洞";
+
+// MARK: - New Round View Updates
+"new.round.course.info" = "球场信息";
+"new.round.total.rounds" = "总轮次";
+"new.round.last.round" = "最近轮次";
+"new.round.next.number" = "即将创建";
+
+// MARK: - Home View Updates
+"home.current.status" = "当前状态";
+"home.current.course" = "当前球场";
+"home.current.round" = "当前轮次";
+"home.no.course.selected" = "未选择球场";
+"home.no.round.selected" = "未选择轮次";
+"home.start.recording" = "开始录制";
+
+// MARK: - Recording Setup
+"recording.setup.title" = "录制设置";
+"recording.setup.description" = "选择球洞、球杆和击球类型，然后开始录制";
+"recording.setup.round.info" = "轮次信息";
+"recording.setup.course" = "球场";
+"recording.setup.round" = "轮次";
+"recording.setup.hole.number" = "球洞选择";
+"recording.setup.club.type" = "球杆类型";
+"recording.setup.shot.type" = "击球类型";
+"recording.setup.start.recording" = "开始录制";
+
+// MARK: - Round Selection
+"round.selection.title" = "选择轮次";
+"round.selection.no.rounds" = "暂无轮次";
+"round.selection.create.first" = "请先创建轮次";
+
+// MARK: - Course Stats
+"courses.total.rounds" = "总轮次";
+"courses.completed.rounds" = "已完成";
+"courses.total.holes" = "总球洞";
+
+// MARK: - Course Par Settings
+"course.front.nine.par" = "前九洞标准杆";
+"course.back.nine.par" = "后九洞标准杆";
+
+// MARK: - Course Photo
+"course.photo" = "球场照片";
+"course.add.photo" = "添加照片";
+"course.change.photo" = "更换照片";
+"course.photo.optional" = "可选";
+"course.remove.photo" = "删除照片";
+
+// MARK: - Settings Storage
+"settings.course.photos" = "球场照片";
+
+// MARK: - Edit Hole Updates
+"edit.hole.my.strokes" = "我的杆数";
+"edit.hole.my.strokes.placeholder" = "输入杆数";
+
+// MARK: - Score Display
+"score.par" = "标准杆";
+"score.birdie" = "小鸟球";
+"score.eagle" = "老鹰球";
+"score.bogey" = "柏忌";
+"score.double.bogey" = "双柏忌";
+
+// MARK: - Hole Record Video
+"hole.record.add.video" = "添加视频";
+"hole.record.no.videos" = "暂无视频记录";
+
+// MARK: - Recording Settings
+"recording.settings.title" = "录制设置";
+
+// MARK: - Video Selection
+"hole.record.add.video.options" = "添加视频";
+"hole.record.record.new" = "录制新视频";
+"hole.record.select.existing" = "从相册选择";
+"hole.record.select.video.title" = "选择视频";
+"hole.record.select.video.message" = "选择如何为此球洞添加视频";
+"hole.record.select.from.photos" = "从相册选择";
+"hole.record.import.error" = "导入错误";
+"hole.record.import.video" = "导入视频";

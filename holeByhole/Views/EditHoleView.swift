@@ -13,7 +13,7 @@ struct EditHoleView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     
-    @State private var score: Int?
+    @State private var myStrokes: Int?
     @State private var notes: String
     @State private var weather: String
     @State private var mood: String
@@ -21,7 +21,7 @@ struct EditHoleView: View {
     
     init(hole: GolfHole) {
         self.hole = hole
-        self._score = State(initialValue: hole.score)
+        self._myStrokes = State(initialValue: hole.myStrokes)
         self._notes = State(initialValue: hole.notes ?? "")
         self._weather = State(initialValue: hole.weather ?? "")
         self._mood = State(initialValue: hole.mood ?? "")
@@ -47,11 +47,19 @@ struct EditHoleView: View {
                     }
                     
                     HStack {
-                        Text("edit.hole.score".localized)
+                        Text("edit.hole.my.strokes".localized)
                         Spacer()
-                        TextField("edit.hole.score.placeholder".localized, value: $score, format: .number)
+                        TextField("edit.hole.my.strokes.placeholder".localized, value: $myStrokes, format: .number)
                             .keyboardType(.numberPad)
                             .multilineTextAlignment(.trailing)
+                    }
+                    
+                    HStack {
+                        Text("edit.hole.score".localized)
+                        Spacer()
+                        Text(scoreDisplay)
+                            .foregroundColor(scoreColor)
+                            .fontWeight(.medium)
                     }
                 }
                 
@@ -104,8 +112,47 @@ struct EditHoleView: View {
         }
     }
     
+    // 计算属性：获取成绩显示
+    private var scoreDisplay: String {
+        guard let myStrokes = myStrokes else { return "—" }
+        let calculatedScore = myStrokes - hole.par
+        if calculatedScore == 0 {
+            return "score.par".localized
+        } else if calculatedScore == -1 {
+            return "score.birdie".localized
+        } else if calculatedScore == -2 {
+            return "score.eagle".localized
+        } else if calculatedScore == 1 {
+            return "score.bogey".localized
+        } else if calculatedScore == 2 {
+            return "score.double.bogey".localized
+        } else if calculatedScore > 2 {
+            return "+\(calculatedScore)"
+        } else {
+            return "\(calculatedScore)"
+        }
+    }
+    
+    // 计算属性：获取成绩颜色
+    private var scoreColor: Color {
+        guard let myStrokes = myStrokes else { return .secondary }
+        let calculatedScore = myStrokes - hole.par
+        if calculatedScore <= -1 {
+            return .green  // Birdie, Eagle等好成绩
+        } else if calculatedScore == 0 {
+            return .blue   // Par
+        } else {
+            return .red    // Bogey等坏成绩
+        }
+    }
+    
     private func saveChanges() {
-        hole.score = score
+        // 确保球洞对象在数据库中
+        if modelContext.model(for: hole.persistentModelID) == nil {
+            modelContext.insert(hole)
+        }
+        
+        hole.updateMyStrokes(myStrokes)
         hole.notes = notes.isEmpty ? nil : notes
         hole.weather = weather.isEmpty ? nil : weather
         hole.mood = mood.isEmpty ? nil : mood

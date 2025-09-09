@@ -14,18 +14,37 @@ struct NewRoundView: View {
     @Query private var courses: [GolfCourse]
     
     @State private var selectedCourse: GolfCourse?
-    @State private var selectedHole = 1
-    @State private var selectedHoleSide: HoleSide = .front
-    @State private var selectedClub: ClubType = .driver
-    @State private var selectedShotType: ShotType = .tee
     @State private var showingCourseSelection = false
-    @State private var showingVideoRecording = false
     @State private var showingValidationAlert = false
     @State private var validationMessage = ""
+    @State private var isCreatingRound = false
+    
+    let onRoundCreated: ((GolfCourse, GolfRound) -> Void)?
+    
+    init(onRoundCreated: ((GolfCourse, GolfRound) -> Void)? = nil) {
+        self.onRoundCreated = onRoundCreated
+    }
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 24) {
+            VStack(spacing: 32) {
+                // Header
+                VStack(spacing: 16) {
+                    Image(systemName: "flag.2.crossed.fill")
+                        .font(.system(size: 60))
+                        .foregroundColor(.green)
+                    
+                    Text("new.round.title".localized)
+                        .font(.title)
+                        .fontWeight(.bold)
+                    
+                    Text("new.round.description".localized)
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 20)
+                }
+                
                 // Course Selection
                 VStack(alignment: .leading, spacing: 12) {
                     Text("new.round.select.course".localized)
@@ -36,6 +55,7 @@ struct NewRoundView: View {
                     }) {
                         HStack {
                             Image(systemName: "map.fill")
+                                .foregroundColor(.green)
                             Text(selectedCourse?.name ?? "new.round.no.course".localized)
                                 .foregroundColor(selectedCourse == nil ? .secondary : .primary)
                             Spacer()
@@ -44,94 +64,65 @@ struct NewRoundView: View {
                         }
                         .padding()
                         .background(Color(.systemGray6))
-                        .cornerRadius(8)
+                        .cornerRadius(12)
                     }
                 }
                 
-                // Hole Selection
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("new.round.hole.number".localized)
-                        .font(.headline)
-                    
-                    // Hole Side Selection
-                    Picker("Hole Side", selection: $selectedHoleSide) {
-                        ForEach(HoleSide.allCases, id: \.self) { side in
-                            Text(side.displayName).tag(side)
-                        }
-                    }
-                    .pickerStyle(SegmentedPickerStyle())
-                    
-                    // Hole Number Selection
-                    Picker("Hole", selection: $selectedHole) {
-                        ForEach(1...9, id: \.self) { hole in
-                            Text(String(format: selectedHoleSide == .front ? "hole.front.number".localized : "hole.back.number".localized, hole))
-                                .tag(hole)
-                        }
-                    }
-                    .pickerStyle(WheelPickerStyle())
-                    .frame(height: 120)
-                }
-                
-                // Club Selection
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("new.round.club.type".localized)
-                        .font(.headline)
-                    
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 12) {
-                        ForEach(ClubType.allCases, id: \.self) { club in
-                            Button(action: {
-                                selectedClub = club
-                            }) {
-                                VStack(spacing: 4) {
-                                    Image(systemName: clubIcon(for: club))
-                                        .font(.title2)
-                                    Text(club.displayName)
-                                        .font(.caption)
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 12)
-                                .background(selectedClub == club ? Color.green : Color(.systemGray6))
-                                .foregroundColor(selectedClub == club ? .white : .primary)
-                                .cornerRadius(8)
+                // Course Round Information
+                if let course = selectedCourse {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("new.round.course.info".localized)
+                            .font(.headline)
+                        
+                        VStack(spacing: 8) {
+                            HStack {
+                                Text("new.round.total.rounds".localized)
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                                Text("\(course.roundsCount)")
+                                    .fontWeight(.semibold)
                             }
-                        }
-                    }
-                }
-                
-                // Shot Type Selection
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("new.round.shot.type".localized)
-                        .font(.headline)
-                    
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 12) {
-                        ForEach(ShotType.allCases, id: \.self) { shotType in
-                            Button(action: {
-                                selectedShotType = shotType
-                            }) {
+                            
+                            if let lastRound = course.rounds.sorted(by: { $0.startDate > $1.startDate }).first {
                                 HStack {
-                                    Image(systemName: shotIcon(for: shotType))
-                                    Text(shotType.displayName)
-                                        .font(.caption)
+                                    Text("new.round.last.round".localized)
+                                        .foregroundColor(.secondary)
+                                    Spacer()
+                                    Text(lastRound.startDate, style: .date)
+                                        .fontWeight(.semibold)
                                 }
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 8)
-                                .background(selectedShotType == shotType ? Color.blue : Color(.systemGray6))
-                                .foregroundColor(selectedShotType == shotType ? .white : .primary)
-                                .cornerRadius(8)
+                            }
+                            
+                            HStack {
+                                Text("new.round.next.number".localized)
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                                Text("第\(course.roundsCount + 1)轮")
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.green)
                             }
                         }
+                        .padding()
+                        .background(Color(.systemGray6))
+                        .cornerRadius(12)
                     }
                 }
                 
                 Spacer()
                 
-                // Start Recording Button
+                // Create Round Button
                 Button(action: {
-                    validateAndStartRecording()
+                    createNewRound()
                 }) {
                     HStack {
-                        Image(systemName: "video.fill")
-                        Text("new.round.start.recording".localized)
+                        if isCreatingRound {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                .scaleEffect(0.8)
+                        } else {
+                            Image(systemName: "plus.circle.fill")
+                        }
+                        Text(isCreatingRound ? "new.round.creating".localized : "new.round.create".localized)
                             .fontWeight(.semibold)
                     }
                     .frame(maxWidth: .infinity)
@@ -140,6 +131,7 @@ struct NewRoundView: View {
                     .foregroundColor(.white)
                     .cornerRadius(12)
                 }
+                .disabled(selectedCourse == nil || isCreatingRound)
             }
             .padding()
             .navigationTitle("new.round.title".localized)
@@ -154,17 +146,6 @@ struct NewRoundView: View {
             .sheet(isPresented: $showingCourseSelection) {
                 CourseSelectionView(selectedCourse: $selectedCourse)
             }
-            .fullScreenCover(isPresented: $showingVideoRecording) {
-                if let course = selectedCourse {
-                    VideoRecordingView(
-                        course: course,
-                        holeNumber: selectedHole,
-                        holeSide: selectedHoleSide,
-                        clubType: selectedClub,
-                        shotType: selectedShotType
-                    )
-                }
-            }
             .alert("validation.error".localized, isPresented: $showingValidationAlert) {
                 Button("common.ok".localized) { }
             } message: {
@@ -173,43 +154,41 @@ struct NewRoundView: View {
         }
     }
     
-    private func clubIcon(for club: ClubType) -> String {
-        switch club {
-        case .driver: return "figure.golf"
-        case .wood: return "tree.fill"
-        case .iron: return "hammer.fill"
-        case .wedge: return "triangle.fill"
-        case .putter: return "circle.fill"
-        case .hybrid: return "plus.circle.fill"
-        }
-    }
-    
-    private func shotIcon(for shotType: ShotType) -> String {
-        switch shotType {
-        case .tee: return "flag.fill"
-        case .fairway: return "leaf.fill"
-        case .approach: return "target"
-        case .chip: return "arrow.up.circle.fill"
-        case .putt: return "circle.circle.fill"
-        case .bunker: return "mountain.2.fill"
-        }
-    }
-    
-    private func validateAndStartRecording() {
+    private func createNewRound() {
         guard let course = selectedCourse else {
             validationMessage = "new.round.validation.no.course".localized
             showingValidationAlert = true
             return
         }
         
-        // Additional validations can be added here if needed
-        // For example, checking if hole number is valid, etc.
+        isCreatingRound = true
         
-        showingVideoRecording = true
+        // 计算下一个轮次号
+        let nextRoundNumber = course.rounds.count + 1
+        
+        // 创建新轮次
+        let newRound = GolfRound(roundNumber: nextRoundNumber, course: course)
+        
+        // 保存到数据库
+        modelContext.insert(newRound)
+        
+        do {
+            try modelContext.save()
+            isCreatingRound = false
+            
+            // 调用回调函数
+            onRoundCreated?(course, newRound)
+            
+            dismiss()
+        } catch {
+            isCreatingRound = false
+            validationMessage = String(format: "new.round.create.failed".localized, error.localizedDescription)
+            showingValidationAlert = true
+        }
     }
 }
 
 #Preview {
     NewRoundView()
-        .modelContainer(for: [GolfCourse.self, GolfHole.self, GolfVideo.self, VideoKeyFrame.self], inMemory: true)
+        .modelContainer(for: [GolfCourse.self, GolfRound.self, GolfHole.self, GolfVideo.self, VideoKeyFrame.self], inMemory: true)
 }

@@ -8,6 +8,7 @@
 import Foundation
 import UIKit
 import SwiftData
+import AVFoundation
 
 class AppFileManager {
     static let shared = AppFileManager()
@@ -28,6 +29,12 @@ class AppFileManager {
     
     var thumbnailsPath: URL {
         let path = appSupportPath.appendingPathComponent("Thumbnails")
+        try? FileManager.default.createDirectory(at: path, withIntermediateDirectories: true, attributes: nil)
+        return path
+    }
+    
+    var coursePhotosPath: URL {
+        let path = appSupportPath.appendingPathComponent("CoursePhotos")
         try? FileManager.default.createDirectory(at: path, withIntermediateDirectories: true, attributes: nil)
         return path
     }
@@ -60,6 +67,23 @@ class AppFileManager {
         return UIImage(data: imageData)
     }
     
+    func generateThumbnail(from videoURL: URL) -> UIImage? {
+        let asset = AVAsset(url: videoURL)
+        let imageGenerator = AVAssetImageGenerator(asset: asset)
+        imageGenerator.appliesPreferredTrackTransform = true
+        imageGenerator.maximumSize = CGSize(width: 300, height: 300)
+        
+        let time = CMTime(seconds: 1, preferredTimescale: 60)
+        
+        do {
+            let cgImage = try imageGenerator.copyCGImage(at: time, actualTime: nil)
+            return UIImage(cgImage: cgImage)
+        } catch {
+            print("Failed to generate thumbnail: \(error)")
+            return nil
+        }
+    }
+    
     func getMostRecentVideoFile() -> URL? {
         do {
             let files = try FileManager.default.contentsOfDirectory(at: videosPath, includingPropertiesForKeys: [.creationDateKey], options: [])
@@ -87,7 +111,79 @@ class AppFileManager {
         try? FileManager.default.removeItem(at: url)
     }
     
+    // MARK: - Course Photo Management
+    
+    func saveCoursePhoto(_ image: UIImage, for courseId: UUID) -> String? {
+        guard let data = image.jpegData(compressionQuality: 0.8) else { return nil }
+        
+        let fileName = "course_\(courseId.uuidString).jpg"
+        let fileURL = coursePhotosPath.appendingPathComponent(fileName)
+        
+        do {
+            try data.write(to: fileURL)
+            return fileURL.path
+        } catch {
+            print("Failed to save course photo: \(error)")
+            return nil
+        }
+    }
+    
+    func loadCoursePhoto(from path: String) -> UIImage? {
+        let photoURL = URL(fileURLWithPath: path)
+        guard let imageData = try? Data(contentsOf: photoURL) else { return nil }
+        return UIImage(data: imageData)
+    }
+    
+    func deleteCoursePhoto(at path: String) {
+        let url = URL(fileURLWithPath: path)
+        try? FileManager.default.removeItem(at: url)
+    }
+    
     // MARK: - Data Migration
+    
+    func fixCoursePhotoPaths(in modelContext: ModelContext) {
+        print("🔧 Starting course photo path migration...")
+        
+        // Get all courses from database
+        let descriptor = FetchDescriptor<GolfCourse>()
+        guard let courses = try? modelContext.fetch(descriptor) else {
+            print("❌ Failed to fetch courses from database")
+            return
+        }
+        
+        print("🔍 Found \(courses.count) courses in database")
+        
+        var updatedCount = 0
+        
+        for course in courses {
+            let oldPath = course.photoPath
+            
+            // Check if the old path contains a different Application ID
+            if let oldPath = oldPath,
+               oldPath.contains("/Application/") && !oldPath.contains(appSupportPath.path) {
+                // Extract filename from old path
+                let fileName = URL(fileURLWithPath: oldPath).lastPathComponent
+                let newPhotoPath = coursePhotosPath.appendingPathComponent(fileName).path
+                
+                // Check if file exists at new location
+                if FileManager.default.fileExists(atPath: newPhotoPath) {
+                    course.photoPath = newPhotoPath
+                    print("✅ Updated course photo path: \(fileName)")
+                    updatedCount += 1
+                } else {
+                    print("❌ Course photo file not found at new location: \(fileName)")
+                }
+            }
+        }
+        
+        // Save changes
+        do {
+            try modelContext.save()
+            print("✅ Successfully migrated \(updatedCount) course photo paths")
+        } catch {
+            print("❌ Failed to save migrated course photo paths: \(error)")
+        }
+    }
     
     func fixVideoPaths(in modelContext: ModelContext) {
         print("🔧 Starting video path migration...")
@@ -155,6 +251,7 @@ class AppFileManager {
         print("📁 App Support Path: \(appSupportPath.path)")
         print("📁 Videos Path: \(videosPath.path)")
         print("📁 Thumbnails Path: \(thumbnailsPath.path)")
+        print("📁 Course Photos Path: \(coursePhotosPath.path)")
         
         // List all video files
         do {
@@ -177,13 +274,25 @@ class AppFileManager {
         } catch {
             print("❌ Error listing thumbnail files: \(error)")
         }
+        
+        // List all course photo files
+        do {
+            let coursePhotoFiles = try FileManager.default.contentsOfDirectory(at: coursePhotosPath, includingPropertiesForKeys: nil, options: [])
+            print("🏌️ Course photo files found: \(coursePhotoFiles.count)")
+            for file in coursePhotoFiles {
+                print("  - \(file.lastPathComponent)")
+            }
+        } catch {
+            print("❌ Error listing course photo files: \(error)")
+        }
     }
     
     // MARK: - Storage Info
     
-    func getStorageInfo() -> (videosCount: Int, thumbnailsCount: Int, totalSize: Int64) {
+    func getStorageInfo() -> (videosCount: Int, thumbnailsCount: Int, coursePhotosCount: Int, totalSize: Int64) {
         var videosCount = 0
         var thumbnailsCount = 0
+        var coursePhotosCount = 0
         var totalSize: Int64 = 0
         
         // Count videos
@@ -206,6 +315,16 @@ class AppFileManager {
             }
         }
         
-        return (videosCount, thumbnailsCount, totalSize)
+        // Count course photos
+        if let coursePhotoFiles = try? FileManager.default.contentsOfDirectory(at: coursePhotosPath, includingPropertiesForKeys: [.fileSizeKey], options: []) {
+            coursePhotosCount = coursePhotoFiles.count
+            for file in coursePhotoFiles {
+                if let fileSize = try? file.resourceValues(forKeys: [.fileSizeKey]).fileSize {
+                    totalSize += Int64(fileSize)
+                }
+            }
+        }
+        
+        return (videosCount, thumbnailsCount, coursePhotosCount, totalSize)
     }
 }

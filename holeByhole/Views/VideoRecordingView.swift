@@ -15,8 +15,26 @@ struct VideoRecordingView: View {
     let holeSide: HoleSide
     let clubType: ClubType
     let shotType: ShotType
+    let round: GolfRound?
+    let existingHole: GolfHole? // 可选的现有球洞记录
     
     @Environment(\.modelContext) private var modelContext
+    
+    init(course: GolfCourse, holeNumber: Int, holeSide: HoleSide, clubType: ClubType, shotType: ShotType, round: GolfRound?, existingHole: GolfHole?) {
+        self.course = course
+        self.holeNumber = holeNumber
+        self.holeSide = holeSide
+        self.clubType = clubType
+        self.shotType = shotType
+        self.round = round
+        self.existingHole = existingHole
+        
+        // 初始化状态变量
+        self._currentHoleNumber = State(initialValue: holeNumber)
+        self._currentHoleSide = State(initialValue: holeSide)
+        self._currentClubType = State(initialValue: clubType)
+        self._currentShotType = State(initialValue: shotType)
+    }
     @Environment(\.dismiss) private var dismiss
     
     @StateObject private var cameraManager = CameraManager()
@@ -31,6 +49,13 @@ struct VideoRecordingView: View {
     @State private var isProcessingVideo = false
     @State private var processingTimer: Timer?
     
+    // 可调整的参数
+    @State private var currentHoleNumber: Int
+    @State private var currentHoleSide: HoleSide
+    @State private var currentClubType: ClubType
+    @State private var currentShotType: ShotType
+    @State private var showingSettings = false
+    
     var body: some View {
         ZStack {
             // Camera Preview
@@ -41,7 +66,7 @@ struct VideoRecordingView: View {
                 // Top Info Bar
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(String(format: holeSide == .front ? "hole.front.number".localized : "hole.back.number".localized, holeNumber))
+                        Text(String(format: currentHoleSide == .front ? "hole.front.number".localized : "hole.back.number".localized, currentHoleNumber))
                             .font(.headline)
                             .foregroundColor(.white)
                         
@@ -53,17 +78,20 @@ struct VideoRecordingView: View {
                     Spacer()
                     
                     VStack(alignment: .trailing, spacing: 4) {
-                        Text(clubType.displayName)
+                        Text(currentClubType.displayName)
                             .font(.headline)
                             .foregroundColor(.white)
                         
-                        Text(shotType.displayName)
+                        Text(currentShotType.displayName)
                             .font(.caption)
                             .foregroundColor(.white.opacity(0.8))
                     }
                 }
                 .padding()
                 .background(Color.black.opacity(0.5))
+                .onTapGesture {
+                    showingSettings = true
+                }
                 
                 Spacer()
                 
@@ -189,12 +217,22 @@ struct VideoRecordingView: View {
                 VideoSaveOptionsView(
                     videoURL: videoURL,
                     course: course,
-                    holeNumber: holeNumber,
-                    holeSide: holeSide,
-                    clubType: clubType,
-                    shotType: shotType
+                    holeNumber: currentHoleNumber,
+                    holeSide: currentHoleSide,
+                    clubType: currentClubType,
+                    shotType: currentShotType,
+                    round: round,
+                    existingHole: existingHole
                 )
             }
+        }
+        .sheet(isPresented: $showingSettings) {
+            RecordingSettingsView(
+                holeNumber: $currentHoleNumber,
+                holeSide: $currentHoleSide,
+                clubType: $currentClubType,
+                shotType: $currentShotType
+            )
         }
     }
     
@@ -317,12 +355,137 @@ struct CameraPreviewView: UIViewRepresentable {
     }
 }
 
+struct RecordingSettingsView: View {
+    @Binding var holeNumber: Int
+    @Binding var holeSide: HoleSide
+    @Binding var clubType: ClubType
+    @Binding var shotType: ShotType
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 24) {
+                // Hole Selection
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("recording.setup.hole.number".localized)
+                        .font(.headline)
+                    
+                    // Hole Side Selection
+                    Picker("Hole Side", selection: $holeSide) {
+                        ForEach(HoleSide.allCases, id: \.self) { side in
+                            Text(side.displayName).tag(side)
+                        }
+                    }
+                    .pickerStyle(SegmentedPickerStyle())
+                    
+                    // Hole Number Selection
+                    Picker("Hole", selection: $holeNumber) {
+                        ForEach(1...9, id: \.self) { hole in
+                            Text(String(format: holeSide == .front ? "hole.front.number".localized : "hole.back.number".localized, hole))
+                                .tag(hole)
+                        }
+                    }
+                    .pickerStyle(WheelPickerStyle())
+                    .frame(height: 120)
+                }
+                
+                // Club Selection
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("recording.setup.club.type".localized)
+                        .font(.headline)
+                    
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 12) {
+                        ForEach(ClubType.allCases, id: \.self) { club in
+                            Button(action: {
+                                clubType = club
+                            }) {
+                                VStack(spacing: 4) {
+                                    Image(systemName: clubIcon(for: club))
+                                        .font(.title2)
+                                    Text(club.displayName)
+                                        .font(.caption)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(clubType == club ? Color.green : Color(.systemGray6))
+                                .foregroundColor(clubType == club ? .white : .primary)
+                                .cornerRadius(8)
+                            }
+                        }
+                    }
+                }
+                
+                // Shot Type Selection
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("recording.setup.shot.type".localized)
+                        .font(.headline)
+                    
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 12) {
+                        ForEach(ShotType.allCases, id: \.self) { shotType in
+                            Button(action: {
+                                self.shotType = shotType
+                            }) {
+                                HStack {
+                                    Image(systemName: shotIcon(for: shotType))
+                                    Text(shotType.displayName)
+                                        .font(.caption)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 8)
+                                .background(self.shotType == shotType ? Color.blue : Color(.systemGray6))
+                                .foregroundColor(self.shotType == shotType ? .white : .primary)
+                                .cornerRadius(8)
+                            }
+                        }
+                    }
+                }
+                
+                Spacer()
+            }
+            .padding()
+            .navigationTitle("recording.settings.title".localized)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("common.done".localized) {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+    
+    private func clubIcon(for club: ClubType) -> String {
+        switch club {
+        case .driver: return "figure.golf"
+        case .wood: return "tree.fill"
+        case .iron: return "hammer.fill"
+        case .wedge: return "triangle.fill"
+        case .putter: return "circle.fill"
+        case .hybrid: return "plus.circle.fill"
+        }
+    }
+    
+    private func shotIcon(for shotType: ShotType) -> String {
+        switch shotType {
+        case .tee: return "flag.fill"
+        case .fairway: return "leaf.fill"
+        case .approach: return "target"
+        case .chip: return "arrow.up.circle.fill"
+        case .putt: return "circle.circle.fill"
+        case .bunker: return "mountain.2.fill"
+        }
+    }
+}
+
 #Preview {
     VideoRecordingView(
         course: GolfCourse(name: "Sample Course"),
         holeNumber: 1,
         holeSide: .front,
         clubType: .driver,
-        shotType: .tee
+        shotType: .tee,
+        round: nil,
+        existingHole: nil
     )
 }

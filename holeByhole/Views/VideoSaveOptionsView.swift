@@ -17,6 +17,8 @@ struct VideoSaveOptionsView: View {
     let holeSide: HoleSide
     let clubType: ClubType
     let shotType: ShotType
+    let round: GolfRound?
+    let existingHole: GolfHole? // 可选的现有球洞记录
     
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
@@ -221,7 +223,8 @@ struct VideoSaveOptionsView: View {
             duration: videoDuration,
             clubType: clubType,
             shotType: shotType,
-            hole: hole
+            hole: hole,
+            round: round
         )
         
         // Save thumbnail if available
@@ -244,24 +247,30 @@ struct VideoSaveOptionsView: View {
     }
     
     private func findOrCreateHole() -> GolfHole {
-        // Try to find existing hole for this course and hole number
+        // 如果提供了现有球洞记录，直接使用
+        if let existingHole = existingHole {
+            return existingHole
+        }
+        
+        // Try to find existing hole for this course, round, hole number and hole side
         let descriptor = FetchDescriptor<GolfHole>(
             predicate: #Predicate<GolfHole> { hole in
-                hole.holeNumber == holeNumber
+                hole.holeNumber == holeNumber && hole.holeSide == holeSide
             }
         )
         
-        // Filter by course manually since the predicate is having issues with optional relationships
+        // Filter by course and round manually since the predicate is having issues with optional relationships
         if let existingHoles = try? modelContext.fetch(descriptor) {
             for hole in existingHoles {
-                if hole.course?.id == course.id {
+                if hole.course?.id == course.id && hole.round?.id == round?.id {
                     return hole
                 }
             }
         }
         
-        // Create new hole
-        let newHole = GolfHole(holeNumber: holeNumber, holeSide: holeSide, par: 4, course: course)
+        // Create new hole with correct par from course settings
+        let par = course.getPar(for: holeNumber, holeSide: holeSide)
+        let newHole = GolfHole(holeNumber: holeNumber, holeSide: holeSide, par: par, course: course, round: round)
         modelContext.insert(newHole)
         return newHole
     }
@@ -281,6 +290,8 @@ struct VideoSaveOptionsView: View {
         holeNumber: 1,
         holeSide: .front,
         clubType: .driver,
-        shotType: .tee
+        shotType: .tee,
+        round: nil,
+        existingHole: nil
     )
 }

@@ -108,7 +108,7 @@ struct CourseRowView: View {
                             .foregroundColor(.secondary)
                     }
                     
-                    Text(String(format: "course.selection.holes.recorded".localized, course.holes.count))
+                    Text(String(format: "course.selection.rounds.count".localized, course.roundsCount))
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }
@@ -129,5 +129,5 @@ struct CourseRowView: View {
 
 #Preview {
     CourseSelectionView(selectedCourse: .constant(nil))
-        .modelContainer(for: [GolfCourse.self, GolfHole.self, GolfVideo.self, VideoKeyFrame.self], inMemory: true)
+        .modelContainer(for: [GolfCourse.self, GolfRound.self, GolfHole.self, GolfVideo.self, VideoKeyFrame.self], inMemory: true)
 }

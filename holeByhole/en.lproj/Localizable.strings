@@ -357,3 +357,115 @@
 "video.key.frame.timestamp" = "Timestamp";
 "video.key.frame.time.placeholder" = "Time";
 "video.key.frame.options" = "Key Frame Options";
+
+// MARK: - Round Management
+"new.round.title" = "New Round";
+"new.round.description" = "Select a course to start a new golf round";
+"new.round.select.course" = "Select Course";
+"new.round.no.course" = "Please select a course";
+"new.round.create" = "Create Round";
+"new.round.creating" = "Creating...";
+"new.round.validation.no.course" = "Please select a course first";
+"new.round.create.failed" = "Failed to create round: %@";
+
+"course.rounds.count" = "%d rounds";
+"course.rounds" = "Rounds";
+"course.no.rounds" = "No rounds yet";
+"course.start.first.round" = "Tap the + button to start your first round";
+"course.total.rounds" = "Total Rounds";
+"course.completed.rounds" = "Completed";
+"course.total.holes" = "Total Holes";
+
+"round.details" = "Round Details";
+"round.total.holes" = "Total Holes";
+"round.completed.holes" = "Completed";
+"round.total.score" = "Total Score";
+"round.status" = "Round Status";
+"round.completed" = "Completed";
+"round.weather" = "Weather";
+"round.weather.placeholder" = "Enter weather conditions";
+"round.notes" = "Notes";
+"round.notes.placeholder" = "Enter round notes";
+"round.edit" = "Edit Round";
+"round.save.failed" = "Failed to save round";
+"round.holes.completed" = "Completed %d/%d holes";
+
+"ui.rounds" = "Rounds";
+"ui.holes" = "Holes";
+
+// MARK: - New Round View Updates
+"new.round.course.info" = "Course Information";
+"new.round.total.rounds" = "Total Rounds";
+"new.round.last.round" = "Last Round";
+"new.round.next.number" = "Next Round";
+
+// MARK: - Home View Updates
+"home.current.status" = "Current Status";
+"home.current.course" = "Current Course";
+"home.current.round" = "Current Round";
+"home.no.course.selected" = "No course selected";
+"home.no.round.selected" = "No round selected";
+"home.start.recording" = "Start Recording";
+
+// MARK: - Recording Setup
+"recording.setup.title" = "Recording Setup";
+"recording.setup.description" = "Select hole, club, and shot type, then start recording";
+"recording.setup.round.info" = "Round Information";
+"recording.setup.course" = "Course";
+"recording.setup.round" = "Round";
+"recording.setup.hole.number" = "Hole Selection";
+"recording.setup.club.type" = "Club Type";
+"recording.setup.shot.type" = "Shot Type";
+"recording.setup.start.recording" = "Start Recording";
+
+// MARK: - Round Selection
+"round.selection.title" = "Select Round";
+"round.selection.no.rounds" = "No rounds yet";
+"round.selection.create.first" = "Please create a round first";
+
+// MARK: - Course Stats
+"courses.total.rounds" = "Total Rounds";
+"courses.completed.rounds" = "Completed";
+"courses.total.holes" = "Total Holes";
+
+// MARK: - Course Par Settings
+"course.front.nine.par" = "Front Nine Par";
+"course.back.nine.par" = "Back Nine Par";
+
+// MARK: - Course Photo
+"course.photo" = "Course Photo";
+"course.add.photo" = "Add Photo";
+"course.change.photo" = "Change Photo";
+"course.photo.optional" = "Optional";
+"course.remove.photo" = "Remove Photo";
+
+// MARK: - Settings Storage
+"settings.course.photos" = "Course Photos";
+
+// MARK: - Edit Hole Updates
+"edit.hole.my.strokes" = "My Strokes";
+"edit.hole.my.strokes.placeholder" = "Enter strokes";
+
+// MARK: - Score Display
+"score.par" = "Par";
+"score.birdie" = "Birdie";
+"score.eagle" = "Eagle";
+"score.bogey" = "Bogey";
+"score.double.bogey" = "Double Bogey";
+
+// MARK: - Hole Record Video
+"hole.record.add.video" = "Add Video";
+"hole.record.no.videos" = "No videos recorded";
+
+// MARK: - Recording Settings
+"recording.settings.title" = "Recording Settings";
+
+// MARK: - Video Selection
+"hole.record.add.video.options" = "Add Video";
+"hole.record.record.new" = "Record New Video";
+"hole.record.select.existing" = "Select from Photos";
+"hole.record.select.video.title" = "Select Video";
+"hole.record.select.video.message" = "Choose how you want to add a video to this hole";
+"hole.record.select.from.photos" = "Select from Photos";
+"hole.record.import.error" = "Import Error";
+"hole.record.import.video" = "Import Video";

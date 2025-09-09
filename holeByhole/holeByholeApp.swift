@@ -15,6 +15,7 @@ struct holeByholeApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             GolfCourse.self,
+            GolfRound.self,
             GolfHole.self,
             GolfVideo.self,
             VideoKeyFrame.self
@@ -36,6 +37,7 @@ struct holeByholeApp: App {
                     // Run data migration on app launch
                     let context = sharedModelContainer.mainContext
                     AppFileManager.shared.fixVideoPaths(in: context)
+                    AppFileManager.shared.fixCoursePhotoPaths(in: context)
                 }
         }
         .modelContainer(sharedModelContainer)

@@ -7,11 +7,16 @@
 
 import SwiftUI
 import SwiftData
+import AVFoundation
+import UIKit
 
 struct HoleRecordDetailView: View {
     let hole: GolfHole
     @Environment(\.modelContext) private var modelContext
     @State private var showingEditView = false
+    @State private var showingVideoRecording = false
+    @State private var showingVideoSelection = false
+    @State private var showingActionSheet = false
     
     var body: some View {
         ScrollView {
@@ -28,6 +33,12 @@ struct HoleRecordDetailView: View {
                             .foregroundColor(.secondary)
                     }
                     
+                    if let round = hole.round {
+                        Text(round.displayName)
+                            .font(.subheadline)
+                            .foregroundColor(.blue)
+                    }
+                    
                     Text(hole.createdAt, style: .date)
                         .font(.caption)
                         .foregroundColor(.secondary)
@@ -40,11 +51,11 @@ struct HoleRecordDetailView: View {
                         Text("hole.record.score".localized)
                             .font(.headline)
                         
-                        if let score = hole.score {
-                            Text("\(score)")
+                        if let myStrokes = hole.myStrokes {
+                            Text("\(myStrokes)")
                                 .font(.title)
                                 .fontWeight(.bold)
-                                .foregroundColor(scoreColor(score: score, par: hole.par))
+                                .foregroundColor(scoreColor(score: myStrokes, par: hole.par))
                         } else {
                             Text("hole.record.no.score".localized)
                                 .font(.title)
@@ -98,19 +109,44 @@ struct HoleRecordDetailView: View {
                 }
                 
                 // Videos Section
-                if !hole.videos.isEmpty {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("hole.record.videos".localized)
-                            .font(.headline)
-                            .padding(.horizontal)
-                        
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("hole.record.videos".localized)
+                        .font(.headline)
+                        .padding(.horizontal)
+                    
+                    if !hole.videos.isEmpty {
                         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 2), spacing: 12) {
                             ForEach(hole.videos) { video in
                                 VideoCard(video: video)
                             }
                         }
                         .padding(.horizontal)
+                    } else {
+                        Text("hole.record.no.videos".localized)
+                            .foregroundColor(.secondary)
+                            .padding(.horizontal)
                     }
+                }
+                
+                // Add Video Button Section
+                VStack(spacing: 12) {
+                    Button(action: {
+                        showingActionSheet = true
+                    }) {
+                        HStack(spacing: 12) {
+                            Image(systemName: "video.fill")
+                                .font(.title2)
+                            Text("hole.record.add.video".localized)
+                                .font(.headline)
+                                .fontWeight(.semibold)
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(Color.red)
+                        .cornerRadius(12)
+                    }
+                    .padding(.horizontal)
                 }
                 
                 Spacer(minLength: 100)
@@ -127,6 +163,34 @@ struct HoleRecordDetailView: View {
         }
         .sheet(isPresented: $showingEditView) {
             EditHoleView(hole: hole)
+        }
+        .fullScreenCover(isPresented: $showingVideoRecording) {
+            VideoRecordingView(
+                course: hole.course ?? GolfCourse(name: "Unknown Course"),
+                holeNumber: hole.holeNumber,
+                holeSide: hole.holeSide ?? (hole.holeNumber <= 9 ? .front : .back),
+                clubType: .driver,
+                shotType: .tee,
+                round: hole.round,
+                existingHole: hole
+            )
+        }
+        .sheet(isPresented: $showingVideoSelection) {
+            VideoSelectionView(hole: hole)
+        }
+        .actionSheet(isPresented: $showingActionSheet) {
+            ActionSheet(
+                title: Text("hole.record.add.video.options".localized),
+                buttons: [
+                    .default(Text("hole.record.record.new".localized)) {
+                        showingVideoRecording = true
+                    },
+                    .default(Text("hole.record.select.existing".localized)) {
+                        showingVideoSelection = true
+                    },
+                    .cancel(Text("common.cancel".localized))
+                ]
+            )
         }
         .onAppear {
             // Run migration if needed
@@ -326,6 +390,255 @@ struct VideoCard: View {
             try modelContext.save()
         } catch {
             print("Failed to delete video: \(error)")
+        }
+    }
+}
+
+struct VideoSelectionView: View {
+    let hole: GolfHole
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+    @State private var selectedVideoURL: URL?
+    @State private var showingImagePicker = false
+    @State private var showingAlert = false
+    @State private var alertMessage = ""
+    @State private var selectedClubType: ClubType = .driver
+    @State private var selectedShotType: ShotType = .tee
+    @State private var showingVideoDetails = false
+    
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 24) {
+                Text("hole.record.select.video.message".localized)
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+                
+                Button(action: {
+                    showingImagePicker = true
+                }) {
+                    HStack {
+                        Image(systemName: "photo.on.rectangle")
+                        Text("hole.record.select.from.photos".localized)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+                }
+                .padding(.horizontal)
+                
+                if showingVideoDetails {
+                    VStack(spacing: 20) {
+                        // Club Type Selection
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("recording.setup.club.type".localized)
+                                .font(.headline)
+                            
+                            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 12) {
+                                ForEach(ClubType.allCases, id: \.self) { club in
+                                    Button(action: {
+                                        selectedClubType = club
+                                    }) {
+                                        VStack(spacing: 4) {
+                                            Image(systemName: clubIcon(for: club))
+                                                .font(.title2)
+                                            Text(club.displayName)
+                                                .font(.caption)
+                                        }
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 12)
+                                        .background(selectedClubType == club ? Color.green : Color(.systemGray6))
+                                        .foregroundColor(selectedClubType == club ? .white : .primary)
+                                        .cornerRadius(8)
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Shot Type Selection
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("recording.setup.shot.type".localized)
+                                .font(.headline)
+                            
+                            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 12) {
+                                ForEach(ShotType.allCases, id: \.self) { shotType in
+                                    Button(action: {
+                                        selectedShotType = shotType
+                                    }) {
+                                        HStack {
+                                            Image(systemName: shotIcon(for: shotType))
+                                            Text(shotType.displayName)
+                                                .font(.caption)
+                                        }
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 8)
+                                        .background(selectedShotType == shotType ? Color.blue : Color(.systemGray6))
+                                        .foregroundColor(selectedShotType == shotType ? .white : .primary)
+                                        .cornerRadius(8)
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Import Button
+                        Button(action: {
+                            if let videoURL = selectedVideoURL {
+                                importVideo(from: videoURL)
+                            }
+                        }) {
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                Text("hole.record.import.video".localized)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.green)
+                            .foregroundColor(.white)
+                            .cornerRadius(12)
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+                
+                Spacer()
+            }
+            .navigationTitle("hole.record.select.video.title".localized)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("common.cancel".localized) {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $showingImagePicker) {
+            VideoPickerView { url in
+                selectedVideoURL = url
+                if url != nil {
+                    showingVideoDetails = true
+                }
+            }
+        }
+        .alert("hole.record.import.error".localized, isPresented: $showingAlert) {
+            Button("common.ok".localized) { }
+        } message: {
+            Text(alertMessage)
+        }
+    }
+    
+    private func importVideo(from url: URL) {
+        do {
+            // Create a new GolfVideo record
+            let fileName = "imported_\(UUID().uuidString).mp4"
+            let newVideo = GolfVideo(
+                fileName: fileName,
+                filePath: url.path,
+                duration: 0, // Will be updated after processing
+                clubType: selectedClubType, // Use user selected values
+                shotType: selectedShotType,
+                hole: hole
+            )
+            
+            // Copy video file to app's documents directory
+            let documentsPath = AppFileManager.shared.videosPath
+            let destinationFileName = "\(UUID().uuidString).mp4"
+            let destinationURL = documentsPath.appendingPathComponent(destinationFileName)
+            
+            try FileManager.default.copyItem(at: url, to: destinationURL)
+            newVideo.filePath = destinationURL.path
+            newVideo.fileName = destinationFileName
+            
+            // Generate thumbnail
+            if let thumbnail = AppFileManager.shared.generateThumbnail(from: destinationURL) {
+                let thumbnailFileName = "\(UUID().uuidString).jpg"
+                let thumbnailURL = AppFileManager.shared.thumbnailsPath.appendingPathComponent(thumbnailFileName)
+                
+                if let thumbnailData = thumbnail.jpegData(compressionQuality: 0.8) {
+                    try thumbnailData.write(to: thumbnailURL)
+                    newVideo.thumbnailPath = thumbnailURL.path
+                }
+            }
+            
+            // Get video duration
+            let asset = AVAsset(url: destinationURL)
+            let duration = CMTimeGetSeconds(asset.duration)
+            newVideo.duration = duration
+            
+            // Save to database
+            modelContext.insert(newVideo)
+            try modelContext.save()
+            
+            dismiss()
+        } catch {
+            alertMessage = error.localizedDescription
+            showingAlert = true
+        }
+    }
+    
+    private func clubIcon(for club: ClubType) -> String {
+        switch club {
+        case .driver: return "figure.golf"
+        case .wood: return "tree.fill"
+        case .iron: return "hammer.fill"
+        case .wedge: return "triangle.fill"
+        case .putter: return "circle.fill"
+        case .hybrid: return "plus.circle.fill"
+        }
+    }
+    
+    private func shotIcon(for shotType: ShotType) -> String {
+        switch shotType {
+        case .tee: return "flag.fill"
+        case .fairway: return "leaf.fill"
+        case .approach: return "target"
+        case .chip: return "arrow.up.circle.fill"
+        case .putt: return "circle.circle.fill"
+        case .bunker: return "mountain.2.fill"
+        }
+    }
+}
+
+struct VideoPickerView: UIViewControllerRepresentable {
+    let onVideoSelected: (URL?) -> Void
+    
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.delegate = context.coordinator
+        picker.sourceType = .photoLibrary
+        picker.mediaTypes = ["public.movie"]
+        picker.videoQuality = .typeHigh
+        return picker
+    }
+    
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: VideoPickerView
+        
+        init(_ parent: VideoPickerView) {
+            self.parent = parent
+        }
+        
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+            if let videoURL = info[.mediaURL] as? URL {
+                parent.onVideoSelected(videoURL)
+            } else {
+                parent.onVideoSelected(nil)
+            }
+            picker.dismiss(animated: true)
+        }
+        
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            parent.onVideoSelected(nil)
+            picker.dismiss(animated: true)
         }
     }
 }

@@ -26,7 +26,7 @@ struct HoleDiaryView: View {
         case .withVideos:
             holes = holes.filter { !$0.videos.isEmpty }
         case .withScores:
-            holes = holes.filter { $0.score != nil }
+            holes = holes.filter { $0.myStrokes != nil }
         case .recent:
             let oneWeekAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
             holes = holes.filter { $0.createdAt >= oneWeekAgo }
@@ -150,10 +150,10 @@ struct HoleDiaryRowView: View {
                     }
                 }
                 
-                if let score = hole.score {
-                    Text(String(format: "diary.score.format".localized, score, hole.par))
+                if let myStrokes = hole.myStrokes {
+                    Text(String(format: "diary.score.format".localized, myStrokes, hole.par))
                         .font(.subheadline)
-                        .foregroundColor(scoreColor(score: score, par: hole.par))
+                        .foregroundColor(scoreColor(score: myStrokes, par: hole.par))
                 } else {
                     Text(String(format: "diary.par.format".localized, hole.par))
                         .font(.subheadline)
@@ -187,11 +187,11 @@ struct HoleDiaryRowView: View {
             Spacer()
             
             VStack(alignment: .trailing, spacing: 4) {
-                if let score = hole.score {
-                    Text("\(score)")
+                if let myStrokes = hole.myStrokes {
+                    Text("\(myStrokes)")
                         .font(.title2)
                         .fontWeight(.bold)
-                        .foregroundColor(scoreColor(score: score, par: hole.par))
+                        .foregroundColor(scoreColor(score: myStrokes, par: hole.par))
                 } else {
                     Text("—")
                         .font(.title2)

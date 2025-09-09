@@ -10,13 +10,19 @@ import SwiftData
 
 struct NewHoleView: View {
     let course: GolfCourse
+    let round: GolfRound?
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    
+    init(course: GolfCourse, round: GolfRound? = nil) {
+        self.course = course
+        self.round = round
+    }
     
     @State private var holeNumber = 1
     @State private var holeSide: HoleSide = .front
     @State private var par = 4
-    @State private var score: Int?
+    @State private var myStrokes: Int?
     @State private var notes = ""
     @State private var weather = ""
     @State private var mood = ""
@@ -24,6 +30,11 @@ struct NewHoleView: View {
     @State private var showingVideoRecording = false
     @State private var selectedClub: ClubType = .driver
     @State private var selectedShotType: ShotType = .tee
+    
+    // 计算属性：根据选择的球洞号和球洞侧获取标准杆数
+    private var currentPar: Int {
+        return course.getPar(for: holeNumber, holeSide: holeSide)
+    }
     
     var body: some View {
         NavigationView {
@@ -34,25 +45,40 @@ struct NewHoleView: View {
                             Text(side.displayName).tag(side)
                         }
                     }
+                    .onChange(of: holeSide) { _, _ in
+                        par = currentPar
+                    }
                     
                     Picker("hole.number.label".localized, selection: $holeNumber) {
                         ForEach(1...9, id: \.self) { hole in
                             Text(String(format: holeSide == .front ? "hole.front.number".localized : "hole.back.number".localized, hole)).tag(hole)
                         }
                     }
-                    
-                    Picker("courses.par".localized, selection: $par) {
-                        ForEach(3...5, id: \.self) { parValue in
-                            Text(String(format: "par.number".localized, parValue)).tag(parValue)
-                        }
+                    .onChange(of: holeNumber) { _, _ in
+                        par = currentPar
                     }
                     
                     HStack {
-                        Text("hole.score".localized)
+                        Text("courses.par".localized)
                         Spacer()
-                        TextField("hole.score".localized, value: $score, format: .number)
+                        Text("\(currentPar)")
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    HStack {
+                        Text("edit.hole.my.strokes".localized)
+                        Spacer()
+                        TextField("edit.hole.my.strokes.placeholder".localized, value: $myStrokes, format: .number)
                             .keyboardType(.numberPad)
                             .multilineTextAlignment(.trailing)
+                    }
+                    
+                    HStack {
+                        Text("edit.hole.score".localized)
+                        Spacer()
+                        Text(scoreDisplay)
+                            .foregroundColor(scoreColor)
+                            .fontWeight(.medium)
                     }
                 }
                 
@@ -112,15 +138,55 @@ struct NewHoleView: View {
                     holeNumber: holeNumber,
                     holeSide: holeSide,
                     clubType: selectedClub,
-                    shotType: selectedShotType
+                    shotType: selectedShotType,
+                    round: round,
+                    existingHole: nil
                 )
+            }
+            .onAppear {
+                // 初始化标准杆数
+                par = currentPar
             }
         }
     }
     
+    // 计算属性：获取成绩显示
+    private var scoreDisplay: String {
+        guard let myStrokes = myStrokes else { return "—" }
+        let calculatedScore = myStrokes - currentPar
+        if calculatedScore == 0 {
+            return "score.par".localized
+        } else if calculatedScore == -1 {
+            return "score.birdie".localized
+        } else if calculatedScore == -2 {
+            return "score.eagle".localized
+        } else if calculatedScore == 1 {
+            return "score.bogey".localized
+        } else if calculatedScore == 2 {
+            return "score.double.bogey".localized
+        } else if calculatedScore > 2 {
+            return "+\(calculatedScore)"
+        } else {
+            return "\(calculatedScore)"
+        }
+    }
+    
+    // 计算属性：获取成绩颜色
+    private var scoreColor: Color {
+        guard let myStrokes = myStrokes else { return .secondary }
+        let calculatedScore = myStrokes - currentPar
+        if calculatedScore <= -1 {
+            return .green  // Birdie, Eagle等好成绩
+        } else if calculatedScore == 0 {
+            return .blue   // Par
+        } else {
+            return .red    // Bogey等坏成绩
+        }
+    }
+    
     private func saveHole() {
-        let newHole = GolfHole(holeNumber: holeNumber, holeSide: holeSide, par: par, course: course)
-        newHole.score = score
+        let newHole = GolfHole(holeNumber: holeNumber, holeSide: holeSide, par: currentPar, course: course, round: round)
+        newHole.updateMyStrokes(myStrokes)
         newHole.notes = notes.isEmpty ? nil : notes
         newHole.weather = weather.isEmpty ? nil : weather
         newHole.mood = mood.isEmpty ? nil : mood
@@ -139,5 +205,5 @@ struct NewHoleView: View {
 
 #Preview {
     NewHoleView(course: GolfCourse(name: "Sample Course"))
-        .modelContainer(for: [GolfCourse.self, GolfHole.self, GolfVideo.self, VideoKeyFrame.self], inMemory: true)
+        .modelContainer(for: [GolfCourse.self, GolfRound.self, GolfHole.self, GolfVideo.self, VideoKeyFrame.self], inMemory: true)
 }

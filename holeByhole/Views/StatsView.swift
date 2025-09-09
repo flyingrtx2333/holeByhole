@@ -111,21 +111,36 @@ struct OverviewStatsView: View {
     let holes: [GolfHole]
     
     var scoredHoles: [GolfHole] {
-        holes.filter { $0.score != nil }
+        holes.filter { $0.myStrokes != nil }
+    }
+    
+    // 计算已打轮次数量
+    var roundsPlayed: Int {
+        let uniqueRounds = Set(holes.compactMap { $0.round?.id })
+        return uniqueRounds.count
     }
     
     var averageScore: Double {
         guard !scoredHoles.isEmpty else { return 0 }
-        let totalScore = scoredHoles.compactMap { $0.score }.reduce(0, +)
+        let totalScore = scoredHoles.compactMap { hole in
+            guard let myStrokes = hole.myStrokes else { return nil }
+            return myStrokes - hole.par
+        }.reduce(0, +)
         return Double(totalScore) / Double(scoredHoles.count)
     }
     
     var bestScore: Int {
-        scoredHoles.compactMap { $0.score }.min() ?? 0
+        scoredHoles.compactMap { hole in
+            guard let myStrokes = hole.myStrokes else { return nil }
+            return myStrokes - hole.par
+        }.min() ?? 0
     }
     
     var worstScore: Int {
-        scoredHoles.compactMap { $0.score }.max() ?? 0
+        scoredHoles.compactMap { hole in
+            guard let myStrokes = hole.myStrokes else { return nil }
+            return myStrokes - hole.par
+        }.max() ?? 0
     }
     
     var totalPar: Int {
@@ -133,7 +148,28 @@ struct OverviewStatsView: View {
     }
     
     var totalScore: Int {
-        scoredHoles.compactMap { $0.score }.reduce(0, +)
+        scoredHoles.compactMap { hole in
+            guard let myStrokes = hole.myStrokes else { return nil }
+            return myStrokes - hole.par
+        }.reduce(0, +)
+    }
+    
+    var bestScoreDisplay: String {
+        if bestScore == 0 {
+            return "score.par".localized
+        } else if bestScore == -1 {
+            return "score.birdie".localized
+        } else if bestScore == -2 {
+            return "score.eagle".localized
+        } else if bestScore == 1 {
+            return "score.bogey".localized
+        } else if bestScore == 2 {
+            return "score.double.bogey".localized
+        } else if bestScore > 2 {
+            return "+\(bestScore)"
+        } else {
+            return "\(bestScore)"
+        }
     }
     
     var body: some View {
@@ -146,7 +182,7 @@ struct OverviewStatsView: View {
             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 12) {
                 StatCard(
                     title: "stats.rounds.played".localized,
-                    value: "\(holes.count)",
+                    value: "\(roundsPlayed)",
                     icon: "flag.fill",
                     color: .green
                 )
@@ -160,7 +196,7 @@ struct OverviewStatsView: View {
                 
                 StatCard(
                     title: "stats.best.score".localized,
-                    value: "\(bestScore)",
+                    value: bestScoreDisplay,
                     icon: "trophy.fill",
                     color: .yellow
                 )
@@ -181,15 +217,50 @@ struct ScoreDistributionView: View {
     let holes: [GolfHole]
     
     var scoreDistribution: [String: Int] {
-        let scores = holes.compactMap { $0.score }
+        let scoredHoles = holes.filter { $0.myStrokes != nil }
         var distribution: [String: Int] = [:]
         
-        for score in scores {
-            let key = "\(score)"
+        for hole in scoredHoles {
+            let score = hole.myStrokes! - hole.par
+            let key = scoreDisplay(score: score)
             distribution[key, default: 0] += 1
         }
         
         return distribution
+    }
+    
+    // 计算属性：获取成绩显示
+    private func scoreDisplay(score: Int) -> String {
+        if score == 0 {
+            return "score.par".localized
+        } else if score == -1 {
+            return "score.birdie".localized
+        } else if score == -2 {
+            return "score.eagle".localized
+        } else if score == 1 {
+            return "score.bogey".localized
+        } else if score == 2 {
+            return "score.double.bogey".localized
+        } else if score > 2 {
+            return "+\(score)"
+        } else {
+            return "\(score)"
+        }
+    }
+    
+    // 成绩排序函数
+    private func scoreOrder(_ scoreString: String) -> Int {
+        if scoreString == "score.eagle".localized { return -2 }
+        else if scoreString == "score.birdie".localized { return -1 }
+        else if scoreString == "score.par".localized { return 0 }
+        else if scoreString == "score.bogey".localized { return 1 }
+        else if scoreString == "score.double.bogey".localized { return 2 }
+        else if scoreString.hasPrefix("+") {
+            return Int(scoreString.dropFirst()) ?? 3
+        } else if let score = Int(scoreString) {
+            return score
+        }
+        return 999 // 未知成绩排在最后
     }
     
     var body: some View {
@@ -201,7 +272,7 @@ struct ScoreDistributionView: View {
             
             if !scoreDistribution.isEmpty {
                 Chart {
-                    ForEach(scoreDistribution.sorted(by: { Int($0.key) ?? 0 < Int($1.key) ?? 0 }), id: \.key) { score, count in
+                    ForEach(scoreDistribution.sorted(by: { scoreOrder($0.key) < scoreOrder($1.key) }), id: \.key) { score, count in
                         BarMark(
                             x: .value("Score", score),
                             y: .value("Count", count)
@@ -253,15 +324,19 @@ struct PerformanceByHoleView: View {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {
                     ForEach(1...9, id: \.self) { holeNumber in
                         let holeData = frontHoles.filter { $0.holeNumber == holeNumber }
-                        let averageScore = holeData.compactMap { $0.score }.isEmpty ? 0 : 
-                            Double(holeData.compactMap { $0.score }.reduce(0, +)) / Double(holeData.compactMap { $0.score }.count)
+                        let scoredHoles = holeData.filter { $0.myStrokes != nil }
+                        let averageScore = scoredHoles.isEmpty ? nil : 
+                            Double(scoredHoles.compactMap { hole in
+                                guard let myStrokes = hole.myStrokes else { return nil }
+                                return myStrokes - hole.par
+                            }.reduce(0, +)) / Double(scoredHoles.count)
                         
                         VStack(spacing: 4) {
                             Text(String(format: "hole.front.number".localized, holeNumber))
                                 .font(.caption)
                                 .fontWeight(.semibold)
                             
-                            if averageScore > 0 {
+                            if let averageScore = averageScore {
                                 Text(String(format: "%.1f", averageScore))
                                     .font(.caption2)
                                     .foregroundColor(scoreColor(averageScore: averageScore))
@@ -289,15 +364,19 @@ struct PerformanceByHoleView: View {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {
                     ForEach(1...9, id: \.self) { holeNumber in
                         let holeData = backHoles.filter { $0.holeNumber == holeNumber }
-                        let averageScore = holeData.compactMap { $0.score }.isEmpty ? 0 : 
-                            Double(holeData.compactMap { $0.score }.reduce(0, +)) / Double(holeData.compactMap { $0.score }.count)
+                        let scoredHoles = holeData.filter { $0.myStrokes != nil }
+                        let averageScore = scoredHoles.isEmpty ? nil : 
+                            Double(scoredHoles.compactMap { hole in
+                                guard let myStrokes = hole.myStrokes else { return nil }
+                                return myStrokes - hole.par
+                            }.reduce(0, +)) / Double(scoredHoles.count)
                         
                         VStack(spacing: 4) {
                             Text(String(format: "hole.back.number".localized, holeNumber))
                                 .font(.caption)
                                 .fontWeight(.semibold)
                             
-                            if averageScore > 0 {
+                            if let averageScore = averageScore {
                                 Text(String(format: "%.1f", averageScore))
                                     .font(.caption2)
                                     .foregroundColor(scoreColor(averageScore: averageScore))
@@ -319,10 +398,10 @@ struct PerformanceByHoleView: View {
     }
     
     private func scoreColor(averageScore: Double) -> Color {
-        if averageScore <= 3.5 { return .green }
-        else if averageScore <= 4.5 { return .blue }
-        else if averageScore <= 5.5 { return .orange }
-        else { return .red }
+        if averageScore <= -0.5 { return .green }  // 小鸟球或更好
+        else if averageScore <= 0.5 { return .blue }  // 标准杆附近
+        else if averageScore <= 1.5 { return .orange }  // 柏忌
+        else { return .red }  // 双柏忌或更差
     }
 }
 
@@ -404,11 +483,11 @@ struct RecentPerformanceView: View {
                         Spacer()
                         
                         VStack(alignment: .trailing, spacing: 2) {
-                            if let score = hole.score {
-                                Text("\(score)")
+                            if let myStrokes = hole.myStrokes {
+                                Text("\(myStrokes)")
                                     .font(.subheadline)
                                     .fontWeight(.bold)
-                                    .foregroundColor(scoreColor(score: score, par: hole.par))
+                                    .foregroundColor(scoreColor(score: myStrokes, par: hole.par))
                             } else {
                                 Text("—")
                                     .font(.subheadline)

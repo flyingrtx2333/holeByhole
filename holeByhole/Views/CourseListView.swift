@@ -31,7 +31,7 @@ struct CourseListView: View {
         NavigationView {
             VStack {
                 if courses.isEmpty {
-                    EmptyStateView()
+                    EmptyStateView(showingAddCourse: $showingAddCourse)
                 } else {
                     List {
                         ForEach(filteredCourses) { course in
@@ -79,23 +79,29 @@ struct CourseListView: View {
             for index in offsets {
                 let course = filteredCourses[index]
                 
-                // Delete all holes and their associated videos
-                for hole in course.holes {
-                    // Delete all videos for this hole
-                    for video in hole.videos {
-                        // Delete video file
-                        AppFileManager.shared.deleteVideoFile(at: URL(fileURLWithPath: video.filePath))
-                        
-                        // Delete thumbnail file if exists
-                        if let thumbnailPath = video.thumbnailPath {
-                            AppFileManager.shared.deleteThumbnailFile(at: thumbnailPath)
+                // Delete all rounds and their associated data
+                for round in course.rounds {
+                    // Delete all holes in this round
+                    for hole in round.holes {
+                        // Delete all videos for this hole
+                        for video in hole.videos {
+                            // Delete video file
+                            AppFileManager.shared.deleteVideoFile(at: URL(fileURLWithPath: video.filePath))
+                            
+                            // Delete thumbnail file if exists
+                            if let thumbnailPath = video.thumbnailPath {
+                                AppFileManager.shared.deleteThumbnailFile(at: thumbnailPath)
+                            }
+                            
+                            modelContext.delete(video)
                         }
                         
-                        modelContext.delete(video)
+                        // Delete the hole
+                        modelContext.delete(hole)
                     }
                     
-                    // Delete the hole
-                    modelContext.delete(hole)
+                    // Delete the round
+                    modelContext.delete(round)
                 }
                 
                 // Delete the course
@@ -116,6 +122,24 @@ struct CourseListRowView: View {
     
     var body: some View {
         HStack {
+            // 球场缩略图
+            if let photoPath = course.photoPath,
+               let image = AppFileManager.shared.loadCoursePhoto(from: photoPath) {
+                Image(uiImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 60, height: 60)
+                    .clipped()
+                    .cornerRadius(8)
+            } else {
+                Image(systemName: "map")
+                    .font(.title2)
+                    .foregroundColor(.secondary)
+                    .frame(width: 60, height: 60)
+                    .background(Color(.systemGray6))
+                    .cornerRadius(8)
+            }
+            
             VStack(alignment: .leading, spacing: 4) {
                 Text(course.name)
                     .font(.headline)
@@ -127,10 +151,10 @@ struct CourseListRowView: View {
                 }
                 
                 HStack {
-                    Image(systemName: "flag.fill")
+                    Image(systemName: "flag.2.crossed.fill")
                         .foregroundColor(.green)
                         .font(.caption)
-                    Text(String(format: "course.holes.recorded".localized, course.holes.count))
+                    Text(String(format: "course.rounds.count".localized, course.roundsCount))
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -139,12 +163,12 @@ struct CourseListRowView: View {
             Spacer()
             
             VStack(alignment: .trailing, spacing: 4) {
-                Text("\(course.holes.count)")
+                Text("\(course.roundsCount)")
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(.green)
                 
-                Text("ui.recorded".localized)
+                Text("ui.rounds".localized)
                     .font(.caption2)
                     .foregroundColor(.secondary)
             }
@@ -154,6 +178,8 @@ struct CourseListRowView: View {
 }
 
 struct EmptyStateView: View {
+    @Binding var showingAddCourse: Bool
+    
     var body: some View {
         VStack(spacing: 20) {
             Image(systemName: "map")
@@ -171,7 +197,7 @@ struct EmptyStateView: View {
                 .padding(.horizontal, 40)
             
             Button(action: {
-                // This will be handled by the parent view
+                showingAddCourse = true
             }) {
                 HStack {
                     Image(systemName: "plus.circle.fill")
@@ -189,5 +215,5 @@ struct EmptyStateView: View {
 
 #Preview {
     CourseListView()
-        .modelContainer(for: [GolfCourse.self, GolfHole.self, GolfVideo.self, VideoKeyFrame.self], inMemory: true)
+        .modelContainer(for: [GolfCourse.self, GolfRound.self, GolfHole.self, GolfVideo.self, VideoKeyFrame.self], inMemory: true)
 }
