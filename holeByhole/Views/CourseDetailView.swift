@@ -12,6 +12,7 @@ struct CourseDetailView: View {
     let course: GolfCourse
     @Environment(\.modelContext) private var modelContext
     @State private var showingNewHole = false
+    @State private var showingEditCourse = false
     
     var holesBySide: [HoleSide: [GolfHole]] {
         Dictionary(grouping: course.holes) { hole in
@@ -127,6 +128,14 @@ struct CourseDetailView: View {
         .navigationTitle("course.details".localized)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button(action: {
+                    showingEditCourse = true
+                }) {
+                    Image(systemName: "pencil")
+                }
+            }
+            
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: {
                     showingNewHole = true
@@ -137,6 +146,9 @@ struct CourseDetailView: View {
         }
         .sheet(isPresented: $showingNewHole) {
             NewHoleView(course: course)
+        }
+        .sheet(isPresented: $showingEditCourse) {
+            EditCourseView(course: course)
         }
     }
     
@@ -227,15 +239,6 @@ struct HoleCard: View {
         .buttonStyle(PlainButtonStyle())
     }
     
-    private func scoreColor(score: Int, par: Int) -> Color {
-        let difference = score - par
-        switch difference {
-        case ..<0: return .red // Under par
-        case 0: return .green // Par
-        case 1: return .orange // Bogey
-        default: return .red // Double bogey or worse
-        }
-    }
 }
 
 #Preview {

@@ -213,15 +213,6 @@ struct HoleRecordCard: View {
         .buttonStyle(PlainButtonStyle())
     }
     
-    private func scoreColor(score: Int, par: Int) -> Color {
-        let difference = score - par
-        switch difference {
-        case ..<0: return .red // Under par
-        case 0: return .green // Par
-        case 1: return .orange // Bogey
-        default: return .red // Double bogey or worse
-        }
-    }
 }
 
 #Preview {

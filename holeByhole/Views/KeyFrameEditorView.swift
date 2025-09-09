@@ -24,7 +24,7 @@ struct KeyFrameEditorView: View {
     var body: some View {
         NavigationView {
             List {
-                Section(header: Text("Key Frames")) {
+                Section(header: Text("video.key.frames".localized)) {
                     ForEach(sortedKeyFrames) { keyFrame in
                         KeyFrameRowView(keyFrame: keyFrame)
                     }
@@ -38,11 +38,11 @@ struct KeyFrameEditorView: View {
                                 .font(.system(size: 40))
                                 .foregroundColor(.secondary)
                             
-                            Text("No Key Frames")
+                            Text("video.no.key.frames".localized)
                                 .font(.headline)
                                 .foregroundColor(.secondary)
                             
-                            Text("Add key frames to mark important moments in your video")
+                            Text("video.key.frame.description".localized)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                                 .multilineTextAlignment(.center)
@@ -52,11 +52,11 @@ struct KeyFrameEditorView: View {
                     }
                 }
             }
-            .navigationTitle("Key Frames")
+            .navigationTitle("video.key.frames".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Done") {
+                    Button("common.done".localized) {
                         dismiss()
                     }
                 }
@@ -75,6 +75,7 @@ struct KeyFrameEditorView: View {
         }
     }
     
+    
     private func deleteKeyFrames(offsets: IndexSet) {
         withAnimation {
             for index in offsets {
@@ -89,7 +90,7 @@ struct KeyFrameRowView: View {
     let keyFrame: VideoKeyFrame
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(formatTime(keyFrame.timestamp))
                     .font(.headline)
@@ -105,6 +106,11 @@ struct KeyFrameRowView: View {
             Text(keyFrame.frameDescription)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.vertical, 8)
+                .padding(.horizontal, 12)
+                .background(Color(.systemGray6))
+                .cornerRadius(8)
         }
         .padding(.vertical, 4)
     }
@@ -127,33 +133,33 @@ struct AddKeyFrameView: View {
     var body: some View {
         NavigationView {
             Form {
-                Section(header: Text("Key Frame Details")) {
+                Section(header: Text("video.key.frame.edit".localized)) {
                     HStack {
-                        Text("Timestamp")
+                        Text("video.key.frame.timestamp".localized)
                         Spacer()
-                        TextField("Time", value: $timestamp, format: .number)
+                        TextField("video.key.frame.time.placeholder".localized, value: $timestamp, format: .number)
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
                     }
                     
-                    TextField("Description", text: $description)
+                    TextField("video.key.frame.description".localized, text: $description)
                 }
                 
-                Section(footer: Text("Key frames help you mark important moments in your golf swing for analysis.")) {
+                Section(footer: Text("video.key.frame.edit.note".localized)) {
                     EmptyView()
                 }
             }
-            .navigationTitle("Add Key Frame")
+            .navigationTitle("video.add.key.frame".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button("common.cancel".localized) {
                         dismiss()
                     }
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Save") {
+                    Button("common.save".localized) {
                         saveKeyFrame()
                     }
                     .disabled(description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)

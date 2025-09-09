@@ -339,3 +339,21 @@
 
 // MARK: - Video Delete Confirmation
 "video.delete.confirmation" = "确定要删除这个视频吗？这将同时删除视频文件和缩略图。此操作无法撤销。";
+
+// MARK: - Course Delete Confirmation
+"course.delete.confirmation" = "确定要删除选中的球场吗？这将同时删除所有相关的球洞记录、视频文件和缩略图。此操作无法撤销。";
+
+// MARK: - Course Edit
+"course.edit.title" = "编辑球场";
+"course.edit.note" = "修改球场信息后，所有相关的球洞记录将保持不变。";
+
+// MARK: - Video Key Frame Edit
+"video.key.frame.edit.title" = "编辑关键帧";
+"video.key.frame.edit" = "关键帧信息";
+"video.key.frame.description" = "备注描述";
+"video.key.frame.edit.note" = "为关键帧添加描述，帮助标记视频中的重要时刻。";
+"video.key.frame.description.required" = "关键帧描述不能为空";
+"video.key.frame.save.failed" = "保存关键帧失败";
+"video.key.frame.timestamp" = "时间戳";
+"video.key.frame.time.placeholder" = "时间";
+"video.key.frame.options" = "关键帧选项";

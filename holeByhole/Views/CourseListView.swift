@@ -13,6 +13,8 @@ struct CourseListView: View {
     @Query private var courses: [GolfCourse]
     @State private var showingAddCourse = false
     @State private var searchText = ""
+    @State private var showingDeleteAlert = false
+    @State private var coursesToDelete: IndexSet = []
     
     var filteredCourses: [GolfCourse] {
         if searchText.isEmpty {
@@ -37,7 +39,7 @@ struct CourseListView: View {
                                 CourseListRowView(course: course)
                             }
                         }
-                        .onDelete(perform: deleteCourses)
+                        .onDelete(perform: showDeleteConfirmation)
                     }
                     .listStyle(PlainListStyle())
                 }
@@ -56,14 +58,54 @@ struct CourseListView: View {
             .sheet(isPresented: $showingAddCourse) {
                 AddCourseView()
             }
+            .alert("common.delete".localized, isPresented: $showingDeleteAlert) {
+                Button("common.cancel".localized, role: .cancel) { }
+                Button("common.delete".localized, role: .destructive) {
+                    deleteCourses(offsets: coursesToDelete)
+                }
+            } message: {
+                Text("course.delete.confirmation".localized)
+            }
         }
+    }
+    
+    private func showDeleteConfirmation(offsets: IndexSet) {
+        coursesToDelete = offsets
+        showingDeleteAlert = true
     }
     
     private func deleteCourses(offsets: IndexSet) {
         withAnimation {
             for index in offsets {
                 let course = filteredCourses[index]
+                
+                // Delete all holes and their associated videos
+                for hole in course.holes {
+                    // Delete all videos for this hole
+                    for video in hole.videos {
+                        // Delete video file
+                        AppFileManager.shared.deleteVideoFile(at: URL(fileURLWithPath: video.filePath))
+                        
+                        // Delete thumbnail file if exists
+                        if let thumbnailPath = video.thumbnailPath {
+                            AppFileManager.shared.deleteThumbnailFile(at: thumbnailPath)
+                        }
+                        
+                        modelContext.delete(video)
+                    }
+                    
+                    // Delete the hole
+                    modelContext.delete(hole)
+                }
+                
+                // Delete the course
                 modelContext.delete(course)
+            }
+            
+            do {
+                try modelContext.save()
+            } catch {
+                print("Failed to delete courses: \(error)")
             }
         }
     }

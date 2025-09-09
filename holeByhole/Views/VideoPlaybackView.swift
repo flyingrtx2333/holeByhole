@@ -20,20 +20,39 @@ struct VideoPlaybackView: View {
     @State private var currentTime: Double = 0
     @State private var duration: Double = 0
     @State private var isPlaying = false
+    @State private var showingKeyFrameEdit = false
+    @State private var editingKeyFrame: VideoKeyFrame?
     
     var body: some View {
         NavigationView {
-            VStack {
-                // Video Player
+            VStack(spacing: 0) {
+                // Full Screen Video Player
                 VideoPlayerView(player: playerManager.player)
-                    .aspectRatio(16/9, contentMode: .fit)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Color.black)
                     .onTapGesture {
                         togglePlayPause()
                     }
                 
-                // Controls
-                VStack(spacing: 16) {
+                // Controls Overlay
+                VStack(spacing: 0) {
+                    // Key Frames on Timeline
+                    if !video.keyFrames.isEmpty {
+                        KeyFramesTimelineView(
+                            keyFrames: video.keyFrames,
+                            currentTime: currentTime,
+                            duration: duration,
+                            onKeyFrameTap: { keyFrame in
+                                seekToTime(keyFrame.timestamp)
+                            },
+                            onKeyFrameEdit: { keyFrame in
+                                editKeyFrame(keyFrame)
+                            }
+                        )
+                        .padding(.horizontal)
+                        .padding(.top, 8)
+                    }
+                    
                     // Progress Bar
                     VStack(spacing: 8) {
                         Slider(value: $currentTime, in: 0...duration) { editing in
@@ -55,6 +74,8 @@ struct VideoPlaybackView: View {
                                 .foregroundColor(.secondary)
                         }
                     }
+                    .padding(.horizontal)
+                    .padding(.top, 8)
                     
                     // Playback Controls
                     HStack(spacing: 30) {
@@ -93,17 +114,9 @@ struct VideoPlaybackView: View {
                                 .foregroundColor(.blue)
                         }
                     }
-                    
-                    // Key Frames
-                    if !video.keyFrames.isEmpty {
-                        KeyFramesView(keyFrames: video.keyFrames, onKeyFrameTap: { keyFrame in
-                            seekToTime(keyFrame.timestamp)
-                        }, onKeyFrameDelete: { keyFrame in
-                            deleteKeyFrame(keyFrame)
-                        })
-                    }
+                    .padding()
                 }
-                .padding()
+                .background(Color(.systemBackground))
             }
             .navigationTitle("video.playback.title".localized)
             .navigationBarTitleDisplayMode(.inline)
@@ -129,6 +142,11 @@ struct VideoPlaybackView: View {
         }
         .sheet(isPresented: $showingKeyFrameEditor) {
             KeyFrameEditorView(video: video)
+        }
+        .sheet(isPresented: $showingKeyFrameEdit) {
+            if let keyFrame = editingKeyFrame {
+                EditKeyFrameView(keyFrame: keyFrame)
+            }
         }
     }
     
@@ -178,14 +196,9 @@ struct VideoPlaybackView: View {
         }
     }
     
-    private func deleteKeyFrame(_ keyFrame: VideoKeyFrame) {
-        modelContext.delete(keyFrame)
-        
-        do {
-            try modelContext.save()
-        } catch {
-            print("Failed to delete key frame: \(error)")
-        }
+    private func editKeyFrame(_ keyFrame: VideoKeyFrame) {
+        editingKeyFrame = keyFrame
+        showingKeyFrameEdit = true
     }
     
     private func formatTime(_ time: Double) -> String {
@@ -218,60 +231,137 @@ struct VideoPlayerView: UIViewRepresentable {
     }
 }
 
-struct KeyFramesView: View {
+struct KeyFramesTimelineView: View {
     let keyFrames: [VideoKeyFrame]
+    let currentTime: Double
+    let duration: Double
     let onKeyFrameTap: (VideoKeyFrame) -> Void
-    let onKeyFrameDelete: (VideoKeyFrame) -> Void
+    let onKeyFrameEdit: (VideoKeyFrame) -> Void
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("video.key.frames".localized)
                 .font(.headline)
             
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ForEach(keyFrames.sorted(by: { $0.timestamp < $1.timestamp })) { keyFrame in
-                        VStack(spacing: 4) {
-                            Button(action: {
-                                onKeyFrameTap(keyFrame)
-                            }) {
-                                VStack(spacing: 4) {
-                                    Text(formatTime(keyFrame.timestamp))
-                                        .font(.caption)
-                                        .fontWeight(.medium)
-                                    
-                                    Text(keyFrame.frameDescription)
-                                        .font(.caption2)
-                                        .foregroundColor(.secondary)
-                                        .lineLimit(2)
-                                }
-                                .padding(8)
-                                .frame(width: 80)
-                                .background(Color.blue.opacity(0.1))
-                                .cornerRadius(8)
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                            
-                            Button(action: {
-                                onKeyFrameDelete(keyFrame)
-                            }) {
-                                Image(systemName: "trash")
+            ZStack(alignment: .topLeading) {
+                // Timeline background
+                Rectangle()
+                    .fill(Color(.systemGray5))
+                    .frame(height: 2)
+                    .frame(maxWidth: .infinity)
+                
+                // Key frame markers
+                ForEach(keyFrames.sorted(by: { $0.timestamp < $1.timestamp })) { keyFrame in
+                    let position = CGFloat(keyFrame.timestamp / duration)
+                    
+                    VStack(spacing: 2) {
+                        // Key frame marker
+                        Button(action: {
+                            onKeyFrameTap(keyFrame)
+                        }) {
+                            VStack(spacing: 2) {
+                                Text(keyFrame.frameDescription)
                                     .font(.caption2)
-                                    .foregroundColor(.red)
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 4)
+                                    .padding(.vertical, 2)
+                                    .background(Color.blue)
+                                    .cornerRadius(4)
+                                
+                                Image(systemName: "bookmark.fill")
+                                    .font(.caption)
+                                    .foregroundColor(.blue)
                             }
-                            .buttonStyle(PlainButtonStyle())
                         }
+                        .buttonStyle(PlainButtonStyle())
+                        .offset(x: (UIScreen.main.bounds.width - 32) * position - 20)
+                        
+                        // Edit button
+                        Button(action: {
+                            onKeyFrameEdit(keyFrame)
+                        }) {
+                            Image(systemName: "pencil")
+                                .font(.caption2)
+                                .foregroundColor(.blue)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .offset(x: (UIScreen.main.bounds.width - 32) * position - 20)
                     }
                 }
-                .padding(.horizontal)
+            }
+            .frame(height: 50)
+        }
+    }
+}
+
+struct EditKeyFrameView: View {
+    let keyFrame: VideoKeyFrame
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+    
+    @State private var description: String
+    @State private var showingAlert = false
+    @State private var alertMessage = ""
+    
+    init(keyFrame: VideoKeyFrame) {
+        self.keyFrame = keyFrame
+        self._description = State(initialValue: keyFrame.frameDescription)
+    }
+    
+    var body: some View {
+        NavigationView {
+            Form {
+                Section(header: Text("video.key.frame.edit".localized)) {
+                    TextField("video.key.frame.description".localized, text: $description, axis: .vertical)
+                        .lineLimit(3...6)
+                }
+                
+                Section(footer: Text("video.key.frame.edit.note".localized)) {
+                    EmptyView()
+                }
+            }
+            .navigationTitle("video.key.frame.edit.title".localized)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("common.cancel".localized) {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("common.save".localized) {
+                        saveKeyFrame()
+                    }
+                    .disabled(description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+            }
+            .alert("common.error".localized, isPresented: $showingAlert) {
+                Button("common.ok".localized) { }
+            } message: {
+                Text(alertMessage)
             }
         }
     }
     
-    private func formatTime(_ time: Double) -> String {
-        let minutes = Int(time) / 60
-        let seconds = Int(time) % 60
-        return String(format: "%d:%02d", minutes, seconds)
+    private func saveKeyFrame() {
+        let trimmedDescription = description.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        guard !trimmedDescription.isEmpty else {
+            alertMessage = "video.key.frame.description.required".localized
+            showingAlert = true
+            return
+        }
+        
+        keyFrame.frameDescription = trimmedDescription
+        
+        do {
+            try modelContext.save()
+            dismiss()
+        } catch {
+            alertMessage = "video.key.frame.save.failed".localized
+            showingAlert = true
+        }
     }
 }
 

@@ -339,3 +339,21 @@
 
 // MARK: - Video Delete Confirmation
 "video.delete.confirmation" = "Are you sure you want to delete this video? This will also delete the video file and thumbnail. This action cannot be undone.";
+
+// MARK: - Course Delete Confirmation
+"course.delete.confirmation" = "Are you sure you want to delete the selected courses? This will also delete all related hole records, video files, and thumbnails. This action cannot be undone.";
+
+// MARK: - Course Edit
+"course.edit.title" = "Edit Course";
+"course.edit.note" = "After modifying course information, all related hole records will remain unchanged.";
+
+// MARK: - Video Key Frame Edit
+"video.key.frame.edit.title" = "Edit Key Frame";
+"video.key.frame.edit" = "Key Frame Information";
+"video.key.frame.description" = "Description";
+"video.key.frame.edit.note" = "Add a description for the key frame to help mark important moments in the video.";
+"video.key.frame.description.required" = "Key frame description cannot be empty";
+"video.key.frame.save.failed" = "Failed to save key frame";
+"video.key.frame.timestamp" = "Timestamp";
+"video.key.frame.time.placeholder" = "Time";
+"video.key.frame.options" = "Key Frame Options";
