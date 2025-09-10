@@ -17,6 +17,7 @@ struct StatsView: View {
     
     @State private var selectedTimeRange: TimeRange = .all
     @State private var selectedCourse: GolfCourse?
+    @StateObject private var localizationManager = LocalizationManager.shared
     
     var filteredHoles: [GolfHole] {
         var filtered = holes
@@ -90,6 +91,9 @@ struct StatsView: View {
                 }
             }
             .navigationTitle("stats.title".localized)
+            .onChange(of: localizationManager.currentLanguage) { _, _ in
+                // Force view refresh when language changes
+            }
         }
     }
 }
@@ -109,6 +113,7 @@ enum TimeRange: CaseIterable {
 
 struct OverviewStatsView: View {
     let holes: [GolfHole]
+    @StateObject private var localizationManager = LocalizationManager.shared
     
     var scoredHoles: [GolfHole] {
         holes.filter { $0.myStrokes != nil }
@@ -209,12 +214,16 @@ struct OverviewStatsView: View {
                 )
             }
             .padding(.horizontal)
+            .onChange(of: localizationManager.currentLanguage) { _, _ in
+                // Force view refresh when language changes
+            }
         }
     }
 }
 
 struct ScoreDistributionView: View {
     let holes: [GolfHole]
+    @StateObject private var localizationManager = LocalizationManager.shared
     
     var scoreDistribution: [String: Int] {
         let scoredHoles = holes.filter { $0.myStrokes != nil }
@@ -288,11 +297,15 @@ struct ScoreDistributionView: View {
                     .padding()
             }
         }
+        .onChange(of: localizationManager.currentLanguage) { _, _ in
+            // Force view refresh when language changes
+        }
     }
 }
 
 struct PerformanceByHoleView: View {
     let holes: [GolfHole]
+    @StateObject private var localizationManager = LocalizationManager.shared
     
     var holesBySide: [HoleSide: [GolfHole]] {
         Dictionary(grouping: holes) { hole in
@@ -395,6 +408,9 @@ struct PerformanceByHoleView: View {
                 .padding(.horizontal)
             }
         }
+        .onChange(of: localizationManager.currentLanguage) { _, _ in
+            // Force view refresh when language changes
+        }
     }
     
     private func scoreColor(averageScore: Double) -> Color {
@@ -407,6 +423,7 @@ struct PerformanceByHoleView: View {
 
 struct ClubUsageView: View {
     let videos: [GolfVideo]
+    @StateObject private var localizationManager = LocalizationManager.shared
     
     var clubUsage: [ClubType: Int] {
         var usage: [ClubType: Int] = [:]
@@ -448,11 +465,15 @@ struct ClubUsageView: View {
                     .padding()
             }
         }
+        .onChange(of: localizationManager.currentLanguage) { _, _ in
+            // Force view refresh when language changes
+        }
     }
 }
 
 struct RecentPerformanceView: View {
     let holes: [GolfHole]
+    @StateObject private var localizationManager = LocalizationManager.shared
     
     var recentHoles: [GolfHole] {
         holes.sorted { $0.createdAt > $1.createdAt }.prefix(10).map { $0 }
@@ -503,11 +524,16 @@ struct RecentPerformanceView: View {
                 }
             }
         }
+        .onChange(of: localizationManager.currentLanguage) { _, _ in
+            // Force view refresh when language changes
+        }
     }
     
 }
 
 struct EmptyStatsView: View {
+    @StateObject private var localizationManager = LocalizationManager.shared
+    
     var body: some View {
         VStack(spacing: 20) {
             Image(systemName: "chart.bar")
@@ -525,6 +551,9 @@ struct EmptyStatsView: View {
                 .padding(.horizontal, 40)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onChange(of: localizationManager.currentLanguage) { _, _ in
+            // Force view refresh when language changes
+        }
     }
 }
 

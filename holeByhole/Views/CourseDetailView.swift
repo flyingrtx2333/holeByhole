@@ -13,6 +13,7 @@ struct CourseDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var showingNewRound = false
     @State private var showingEditCourse = false
+    @State private var showingMapNavigation = false
     
     var sortedRounds: [GolfRound] {
         course.rounds.sorted { $0.roundNumber > $1.roundNumber }
@@ -21,29 +22,72 @@ struct CourseDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                // Course Header
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(course.name)
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                    
-                    if let location = course.location {
-                        HStack {
-                            Image(systemName: "location.fill")
-                                .foregroundColor(.secondary)
-                            Text(location)
-                                .foregroundColor(.secondary)
+                // Course Header with Background Image
+                ZStack(alignment: .bottomLeading) {
+                    // Background Image
+                    Group {
+                        if let photoPath = course.photoPath,
+                           let uiImage = UIImage(contentsOfFile: photoPath) {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                        } else {
+                            // Placeholder with gradient background
+                            LinearGradient(
+                                gradient: Gradient(colors: [.green.opacity(0.8), .blue.opacity(0.6)]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
                         }
                     }
+                    .frame(height: 200)
+                    .clipped()
                     
-                    HStack {
-                        Image(systemName: "flag.2.crossed.fill")
-                            .foregroundColor(.green)
-                        Text(String(format: "course.rounds.count".localized, course.roundsCount))
-                            .foregroundColor(.secondary)
+                    // Overlay gradient for better text readability
+                    LinearGradient(
+                        gradient: Gradient(colors: [.clear, .black.opacity(0.7)]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: 200)
+                    
+                    // Course Info Overlay
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(course.name)
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .shadow(color: .black.opacity(0.5), radius: 2, x: 1, y: 1)
+                        
+                        if let location = course.location {
+                            Button(action: {
+                                showingMapNavigation = true
+                            }) {
+                                HStack {
+                                    Image(systemName: "location.fill")
+                                        .foregroundColor(.white.opacity(0.9))
+                                    Text(location.displayAddress)
+                                        .foregroundColor(.white.opacity(0.9))
+                                    Image(systemName: "arrow.up.right.square")
+                                        .foregroundColor(.white.opacity(0.7))
+                                        .font(.caption)
+                                }
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .shadow(color: .black.opacity(0.5), radius: 1, x: 1, y: 1)
+                        }
+                        
+                        HStack {
+                            Image(systemName: "flag.2.crossed.fill")
+                                .foregroundColor(.green)
+                            Text(String(format: "course.rounds.count".localized, course.roundsCount))
+                                .foregroundColor(.white.opacity(0.9))
+                        }
+                        .shadow(color: .black.opacity(0.5), radius: 1, x: 1, y: 1)
                     }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 20)
                 }
-                .padding(.horizontal)
                 
                 // Quick Stats
                 if !course.rounds.isEmpty {
@@ -122,6 +166,11 @@ struct CourseDetailView: View {
         .sheet(isPresented: $showingEditCourse) {
             EditCourseView(course: course)
         }
+        .sheet(isPresented: $showingMapNavigation) {
+            if let location = course.location {
+                MapNavigationView(location: location)
+            }
+        }
     }
     
 }
@@ -131,6 +180,7 @@ struct StatCard: View {
     let value: String
     let icon: String
     let color: Color
+    @StateObject private var localizationManager = LocalizationManager.shared
     
     var body: some View {
         VStack(spacing: 8) {
@@ -150,6 +200,9 @@ struct StatCard: View {
         .padding()
         .background(Color(.systemGray6))
         .cornerRadius(12)
+        .onChange(of: localizationManager.currentLanguage) { _, _ in
+            // Force view refresh when language changes
+        }
     }
 }
 
@@ -244,7 +297,7 @@ struct EmptyRoundsView: View {
 
 #Preview {
     NavigationView {
-        CourseDetailView(course: GolfCourse(name: "Sample Course", location: "Sample Location"))
+        CourseDetailView(course: GolfCourse(name: "Sample Course", locationString: "Sample Location"))
     }
     .modelContainer(for: [GolfCourse.self, GolfRound.self, GolfHole.self, GolfVideo.self, VideoKeyFrame.self], inMemory: true)
 }

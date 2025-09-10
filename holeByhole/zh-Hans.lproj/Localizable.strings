@@ -470,3 +470,17 @@
 "hole.record.select.from.photos" = "从相册选择";
 "hole.record.import.error" = "导入错误";
 "hole.record.import.video" = "导入视频";
+
+// MARK: - Location and Map
+"location.select" = "选择位置";
+"location.selected" = "已选择位置";
+"location.tap.to.select" = "点击选择位置";
+"location.loading" = "正在获取位置信息...";
+"location.navigation" = "位置导航";
+"location.open.in.maps" = "在地图中打开";
+"location.get.directions" = "获取路线";
+"location.directions.error" = "获取路线失败：%@";
+"location.no.routes" = "无法找到路线";
+"location.search.placeholder" = "搜索地点...";
+"location.drag.to.select" = "拖拽地图选择位置";
+"common.confirm" = "确认";

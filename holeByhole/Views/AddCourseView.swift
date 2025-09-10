@@ -13,11 +13,12 @@ struct AddCourseView: View {
     @Environment(\.dismiss) private var dismiss
     
     @State private var courseName = ""
-    @State private var location = ""
+    @State private var selectedLocation: LocationCoordinate?
     @State private var frontNinePar: [Int] = Array(repeating: 4, count: 9)
     @State private var backNinePar: [Int] = Array(repeating: 4, count: 9)
     @State private var selectedImage: UIImage?
     @State private var showingImagePicker = false
+    @State private var showingLocationPicker = false
     @State private var showingAlert = false
     @State private var alertMessage = ""
     
@@ -28,8 +29,46 @@ struct AddCourseView: View {
                     TextField("course.name".localized, text: $courseName)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                     
-                    TextField("course.location".localized, text: $location)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                    HStack {
+                        Button(action: {
+                            showingLocationPicker = true
+                        }) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("course.location".localized)
+                                        .foregroundColor(.primary)
+                                    
+                                    if let location = selectedLocation {
+                                        Text(location.displayAddress)
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                            .lineLimit(2)
+                                    } else {
+                                        Text("location.tap.to.select".localized)
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        
+                        if selectedLocation != nil {
+                            Button(action: {
+                                selectedLocation = nil
+                            }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundColor(.red)
+                                    .font(.title3)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                    }
                 }
                 
                 Section(header: Text("course.photo".localized)) {
@@ -136,12 +175,14 @@ struct AddCourseView: View {
             .sheet(isPresented: $showingImagePicker) {
                 ImagePicker(selectedImage: $selectedImage)
             }
+            .sheet(isPresented: $showingLocationPicker) {
+                MapLocationPickerView(selectedLocation: $selectedLocation)
+            }
         }
     }
     
     private func saveCourse() {
         let trimmedName = courseName.trimmingCharacters(in: .whitespacesAndNewlines)
-        let trimmedLocation = location.trimmingCharacters(in: .whitespacesAndNewlines)
         
         guard !trimmedName.isEmpty else {
             alertMessage = "course.name.required".localized
@@ -159,7 +200,7 @@ struct AddCourseView: View {
         
         let newCourse = GolfCourse(
             name: trimmedName,
-            location: trimmedLocation.isEmpty ? nil : trimmedLocation
+            location: selectedLocation
         )
         
         // 设置标准杆

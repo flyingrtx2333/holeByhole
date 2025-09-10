@@ -64,6 +64,8 @@
     <string>This app needs access to microphone to record audio with your golf videos.</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>This app needs access to photo library to save your golf videos.</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>This app needs access to location to help you select and navigate to golf courses.</string>
     <key>CFBundleLocalizations</key>
     <array>
         <string>en</string>

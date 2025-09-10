@@ -18,6 +18,7 @@ struct HomeView: View {
     @State private var showingRoundSelection = false
     @State private var currentCourse: GolfCourse?
     @State private var currentRound: GolfRound?
+    @StateObject private var localizationManager = LocalizationManager.shared
     
     private let userDefaultsManager = UserDefaultsManager.shared
     
@@ -177,6 +178,9 @@ struct HomeView: View {
             .onAppear {
                 loadCurrentState()
             }
+            .onChange(of: localizationManager.currentLanguage) { _, _ in
+                // Force view refresh when language changes
+            }
             .sheet(isPresented: $showingNewRound) {
                 NewRoundView { course, round in
                     setCurrentCourse(course)
@@ -232,6 +236,7 @@ struct HomeView: View {
 
 struct RecentHoleCard: View {
     let hole: GolfHole
+    @StateObject private var localizationManager = LocalizationManager.shared
     
     var body: some View {
         NavigationLink(destination: HoleRecordDetailView(hole: hole)) {
@@ -289,6 +294,9 @@ struct RecentHoleCard: View {
             .cornerRadius(8)
         }
         .buttonStyle(PlainButtonStyle())
+        .onChange(of: localizationManager.currentLanguage) { _, _ in
+            // Force view refresh when language changes
+        }
     }
     
     // 计算属性：获取成绩显示

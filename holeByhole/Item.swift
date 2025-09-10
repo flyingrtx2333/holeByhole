@@ -7,13 +7,61 @@
 
 import Foundation
 import SwiftData
+import CoreLocation
+
+// MARK: - Location Coordinate Model
+@Model
+final class LocationCoordinate {
+    var id: UUID
+    var latitude: Double
+    var longitude: Double
+    var address: String?
+    var city: String?
+    var country: String?
+    
+    init(latitude: Double, longitude: Double, address: String? = nil, city: String? = nil, country: String? = nil) {
+        self.id = UUID()
+        self.latitude = latitude
+        self.longitude = longitude
+        self.address = address
+        self.city = city
+        self.country = country
+    }
+    
+    // 创建CLLocation对象
+    var clLocation: CLLocation {
+        return CLLocation(latitude: latitude, longitude: longitude)
+    }
+    
+    // 获取显示地址
+    var displayAddress: String {
+        if let address = address, !address.isEmpty {
+            return address
+        } else if let city = city, let country = country {
+            return "\(city), \(country)"
+        } else if let city = city {
+            return city
+        } else {
+            return String(format: "%.4f, %.4f", latitude, longitude)
+        }
+    }
+    
+    // 获取简短地址
+    var shortAddress: String {
+        if let city = city {
+            return city
+        } else {
+            return String(format: "%.4f, %.4f", latitude, longitude)
+        }
+    }
+}
 
 // MARK: - Golf Course Model
 @Model
 final class GolfCourse {
     var id: UUID
     var name: String
-    var location: String?
+    var location: LocationCoordinate?
     var isCustom: Bool
     var createdAt: Date
     var rounds: [GolfRound]
@@ -25,7 +73,7 @@ final class GolfCourse {
     // 球场照片路径
     var photoPath: String?
     
-    init(name: String, location: String? = nil, isCustom: Bool = true) {
+    init(name: String, location: LocationCoordinate? = nil, isCustom: Bool = true) {
         self.id = UUID()
         self.name = name
         self.location = location
@@ -36,6 +84,24 @@ final class GolfCourse {
         self.frontNinePar = Array(repeating: 4, count: 9)
         self.backNinePar = Array(repeating: 4, count: 9)
         self.photoPath = nil
+    }
+    
+    // 向后兼容的初始化方法
+    convenience init(name: String, locationString: String?, isCustom: Bool = true) {
+        var location: LocationCoordinate? = nil
+        if let locationString = locationString, !locationString.isEmpty {
+            // 尝试解析坐标字符串（格式：latitude,longitude）
+            let components = locationString.components(separatedBy: ",")
+            if components.count == 2,
+               let lat = Double(components[0].trimmingCharacters(in: .whitespaces)),
+               let lon = Double(components[1].trimmingCharacters(in: .whitespaces)) {
+                location = LocationCoordinate(latitude: lat, longitude: lon, address: locationString)
+            } else {
+                // 如果不是坐标格式，则作为地址存储
+                location = LocationCoordinate(latitude: 0, longitude: 0, address: locationString)
+            }
+        }
+        self.init(name: name, location: location, isCustom: isCustom)
     }
     
     // 计算属性：获取所有轮次中的球洞总数
@@ -71,6 +137,22 @@ final class GolfCourse {
     // 获取全场总标准杆
     var totalPar: Int {
         return frontNineTotalPar + backNineTotalPar
+    }
+    
+    // 获取位置显示文本
+    var locationDisplayText: String? {
+        return location?.displayAddress
+    }
+    
+    // 获取简短位置文本
+    var locationShortText: String? {
+        return location?.shortAddress
+    }
+    
+    // 检查是否有有效位置
+    var hasValidLocation: Bool {
+        guard let location = location else { return false }
+        return location.latitude != 0 || location.longitude != 0
     }
 }
 

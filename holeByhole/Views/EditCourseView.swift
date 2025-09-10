@@ -14,18 +14,19 @@ struct EditCourseView: View {
     @Environment(\.dismiss) private var dismiss
     
     @State private var courseName: String
-    @State private var location: String
+    @State private var selectedLocation: LocationCoordinate?
     @State private var frontNinePar: [Int]
     @State private var backNinePar: [Int]
     @State private var selectedImage: UIImage?
     @State private var showingImagePicker = false
+    @State private var showingLocationPicker = false
     @State private var showingAlert = false
     @State private var alertMessage = ""
     
     init(course: GolfCourse) {
         self.course = course
         self._courseName = State(initialValue: course.name)
-        self._location = State(initialValue: course.location ?? "")
+        self._selectedLocation = State(initialValue: course.location)
         self._frontNinePar = State(initialValue: course.frontNinePar)
         self._backNinePar = State(initialValue: course.backNinePar)
         // 加载现有照片
@@ -41,8 +42,46 @@ struct EditCourseView: View {
                     TextField("course.name".localized, text: $courseName)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                     
-                    TextField("course.location".localized, text: $location)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                    HStack {
+                        Button(action: {
+                            showingLocationPicker = true
+                        }) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("course.location".localized)
+                                        .foregroundColor(.primary)
+                                    
+                                    if let location = selectedLocation {
+                                        Text(location.displayAddress)
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                            .lineLimit(2)
+                                    } else {
+                                        Text("location.tap.to.select".localized)
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        
+                        if selectedLocation != nil {
+                            Button(action: {
+                                selectedLocation = nil
+                            }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundColor(.red)
+                                    .font(.title3)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                    }
                 }
                 
                 Section(header: Text("course.photo".localized)) {
@@ -163,12 +202,14 @@ struct EditCourseView: View {
             .sheet(isPresented: $showingImagePicker) {
                 ImagePicker(selectedImage: $selectedImage)
             }
+            .sheet(isPresented: $showingLocationPicker) {
+                MapLocationPickerView(selectedLocation: $selectedLocation)
+            }
         }
     }
     
     private func saveCourse() {
         let trimmedName = courseName.trimmingCharacters(in: .whitespacesAndNewlines)
-        let trimmedLocation = location.trimmingCharacters(in: .whitespacesAndNewlines)
         
         guard !trimmedName.isEmpty else {
             alertMessage = "course.name.required".localized
@@ -187,7 +228,7 @@ struct EditCourseView: View {
         
         // Update course properties
         course.name = trimmedName
-        course.location = trimmedLocation.isEmpty ? nil : trimmedLocation
+        course.location = selectedLocation
         course.frontNinePar = frontNinePar
         course.backNinePar = backNinePar
         
@@ -243,6 +284,6 @@ struct EditCourseView: View {
 }
 
 #Preview {
-    EditCourseView(course: GolfCourse(name: "Sample Course", location: "Sample Location"))
+    EditCourseView(course: GolfCourse(name: "Sample Course", locationString: "Sample Location"))
         .modelContainer(for: [GolfCourse.self, GolfHole.self, GolfVideo.self, VideoKeyFrame.self], inMemory: true)
 }

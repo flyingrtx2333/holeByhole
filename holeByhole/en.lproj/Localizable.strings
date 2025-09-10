@@ -469,3 +469,17 @@
 "hole.record.select.from.photos" = "Select from Photos";
 "hole.record.import.error" = "Import Error";
 "hole.record.import.video" = "Import Video";
+
+// MARK: - Location and Map
+"location.select" = "Select Location";
+"location.selected" = "Selected Location";
+"location.tap.to.select" = "Tap to select location";
+"location.loading" = "Loading location information...";
+"location.navigation" = "Location Navigation";
+"location.open.in.maps" = "Open in Maps";
+"location.get.directions" = "Get Directions";
+"location.directions.error" = "Failed to get directions: %@";
+"location.no.routes" = "No routes found";
+"location.search.placeholder" = "Search for places...";
+"location.drag.to.select" = "Drag map to select location";
+"common.confirm" = "Confirm";

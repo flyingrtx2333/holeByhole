@@ -23,7 +23,9 @@ struct CourseSelectionView: View {
         } else {
             return courses.filter { course in
                 course.name.localizedCaseInsensitiveContains(searchText) ||
-                (course.location?.localizedCaseInsensitiveContains(searchText) ?? false)
+                (course.location?.displayAddress.localizedCaseInsensitiveContains(searchText) ?? false) ||
+                (course.location?.city?.localizedCaseInsensitiveContains(searchText) ?? false) ||
+                (course.location?.country?.localizedCaseInsensitiveContains(searchText) ?? false)
             }
         }
     }
@@ -103,7 +105,7 @@ struct CourseRowView: View {
                         .foregroundColor(.primary)
                     
                     if let location = course.location {
-                        Text(location)
+                        Text(location.displayAddress)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
