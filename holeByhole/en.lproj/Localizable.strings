@@ -242,6 +242,15 @@
 "diary.filter.videos" = "Videos";
 "diary.filter.scores" = "Scores";
 "diary.filter.recent" = "Recent";
+"diary.filter.by.score" = "Filter by Score";
+"diary.filter.by.course" = "Filter by Course";
+"diary.score.filter.eagle" = "Eagle";
+"diary.score.filter.birdie" = "Birdie";
+"diary.score.filter.par" = "Par";
+"diary.score.filter.bogey" = "Bogey";
+"diary.score.filter.double.bogey" = "Double Bogey";
+"diary.score.filter.worse" = "Worse";
+"diary.course.filter.all" = "All Courses";
 "diary.hole.number" = "Hole %d";
 "diary.score.format" = "Score: %d (Par %d)";
 "diary.par.format" = "Par %d";
@@ -398,6 +407,21 @@
 "new.round.total.rounds" = "Total Rounds";
 "new.round.last.round" = "Last Round";
 "new.round.next.number" = "Next Round";
+"new.round.number.format" = "Round %d";
+
+// MARK: - Round Display
+"round.display.name.with.course" = "%@ - Round %d";
+"round.display.name.only" = "Round %d";
+"round.status.completed" = "Completed";
+"round.status.in.progress" = "In Progress";
+"round.date.format" = "yyyy-MM-dd";
+
+// MARK: - Hole Display
+"hole.front.number" = "Front %d";
+"hole.back.number" = "Back %d";
+
+// MARK: - Date Time Format
+"datetime.format.with.seconds" = "yyyy-MM-dd HH:mm:ss";
 
 // MARK: - Home View Updates
 "home.current.status" = "Current Status";

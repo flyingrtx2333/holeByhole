@@ -12,6 +12,7 @@ struct NewRoundView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Query private var courses: [GolfCourse]
+    @StateObject private var localizationManager = LocalizationManager.shared
     
     @State private var selectedCourse: GolfCourse?
     @State private var showingCourseSelection = false
@@ -88,7 +89,7 @@ struct NewRoundView: View {
                                     Text("new.round.last.round".localized)
                                         .foregroundColor(.secondary)
                                     Spacer()
-                                    Text(lastRound.startDate, style: .date)
+                                    Text(lastRound.startDate.formattedDate)
                                         .fontWeight(.semibold)
                                 }
                             }
@@ -97,7 +98,7 @@ struct NewRoundView: View {
                                 Text("new.round.next.number".localized)
                                     .foregroundColor(.secondary)
                                 Spacer()
-                                Text("第\(course.roundsCount + 1)轮")
+                                Text(String(format: "new.round.number.format".localized, course.roundsCount + 1))
                                     .fontWeight(.semibold)
                                     .foregroundColor(.green)
                             }
@@ -150,6 +151,9 @@ struct NewRoundView: View {
                 Button("common.ok".localized) { }
             } message: {
                 Text(validationMessage)
+            }
+            .onChange(of: localizationManager.currentLanguage) { _, _ in
+                // Force view refresh when language changes
             }
         }
     }

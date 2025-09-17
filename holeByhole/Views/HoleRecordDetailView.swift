@@ -39,7 +39,7 @@ struct HoleRecordDetailView: View {
                             .foregroundColor(.blue)
                     }
                     
-                    Text(hole.createdAt, style: .date)
+                    Text(hole.createdAt.formattedDate)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }

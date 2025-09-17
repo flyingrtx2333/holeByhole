@@ -47,7 +47,7 @@ struct RoundDetailView: View {
                     HStack {
                         Image(systemName: "calendar")
                             .foregroundColor(.secondary)
-                        Text(round.startDate, style: .date)
+                        Text(round.startDate.formattedDate)
                             .foregroundColor(.secondary)
                     }
                 }

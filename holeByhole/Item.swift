@@ -9,6 +9,21 @@ import Foundation
 import SwiftData
 import CoreLocation
 
+// MARK: - Date Formatting Extension
+extension Date {
+    var formattedDate: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "round.date.format".localized
+        return formatter.string(from: self)
+    }
+    
+    var formattedDateTime: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "datetime.format.with.seconds".localized
+        return formatter.string(from: self)
+    }
+}
+
 // MARK: - Location Coordinate Model
 @Model
 final class LocationCoordinate {
@@ -182,18 +197,18 @@ final class GolfRound {
     // 计算属性：获取轮次显示名称
     var displayName: String {
         if let course = course {
-            return "\(course.name) - 第\(roundNumber)轮"
+            return String(format: "round.display.name.with.course".localized, course.name, roundNumber)
         } else {
-            return "第\(roundNumber)轮"
+            return String(format: "round.display.name.only".localized, roundNumber)
         }
     }
     
     // 计算属性：获取轮次状态
     var statusText: String {
         if isCompleted {
-            return "已完成"
+            return "round.status.completed".localized
         } else {
-            return "进行中"
+            return "round.status.in.progress".localized
         }
     }
     
@@ -245,9 +260,9 @@ final class GolfHole {
         let side = holeSide ?? (holeNumber <= 9 ? .front : .back)
         switch side {
         case .front:
-            return "前\(holeNumber)洞"
+            return String(format: "hole.front.number".localized, holeNumber)
         case .back:
-            return "后\(holeNumber)洞"
+            return String(format: "hole.back.number".localized, holeNumber)
         }
     }
     

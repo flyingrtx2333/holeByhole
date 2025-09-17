@@ -84,7 +84,7 @@ struct RoundRowView: View {
                             .foregroundColor(.secondary)
                     }
                     
-                    Text(round.startDate, style: .date)
+                    Text(round.startDate.formattedDate)
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }

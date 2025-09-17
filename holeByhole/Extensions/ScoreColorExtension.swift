@@ -37,13 +37,13 @@ func scoreColor(score: Int, par: Int) -> Color {
     case ..<0: 
         // Under par - use different colors based on how much under
         if difference <= -2 {
-            return .purple // Eagle or better
+            return .yellow // Eagle or better - 金色
         } else {
-            return .blue // Birdie
+            return .red // Birdie - 红色
         }
-    case 0: return .green // Par
-    case 1: return .orange // Bogey
-    case 2: return .red // Double bogey
-    default: return .red.opacity(0.8) // Triple bogey or worse
+    case 0: return .blue // Par - 蓝色
+    case 1: return .green // Bogey - 绿色
+    case 2: return Color(red: 0, green: 0.5, blue: 0) // Double bogey - 深绿色
+    default: return .gray // Triple bogey or worse - 灰色
     }
 }

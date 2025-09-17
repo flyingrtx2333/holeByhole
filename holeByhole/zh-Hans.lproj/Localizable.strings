@@ -243,6 +243,15 @@
 "diary.filter.videos" = "视频";
 "diary.filter.scores" = "成绩";
 "diary.filter.recent" = "最近";
+"diary.filter.by.score" = "按成绩筛选";
+"diary.filter.by.course" = "按球场筛选";
+"diary.score.filter.eagle" = "老鹰球";
+"diary.score.filter.birdie" = "小鸟球";
+"diary.score.filter.par" = "标准杆";
+"diary.score.filter.bogey" = "柏忌";
+"diary.score.filter.double.bogey" = "双柏忌";
+"diary.score.filter.worse" = "更差";
+"diary.course.filter.all" = "所有球场";
 "diary.hole.number" = "第%d洞";
 "diary.score.format" = "成绩：%d (标准杆%d)";
 "diary.par.format" = "标准杆%d";
@@ -399,6 +408,21 @@
 "new.round.total.rounds" = "总轮次";
 "new.round.last.round" = "最近轮次";
 "new.round.next.number" = "即将创建";
+"new.round.number.format" = "第%d轮";
+
+// MARK: - Round Display
+"round.display.name.with.course" = "%@ - 第%d轮";
+"round.display.name.only" = "第%d轮";
+"round.status.completed" = "已完成";
+"round.status.in.progress" = "进行中";
+"round.date.format" = "yyyy-MM-dd";
+
+// MARK: - Hole Display
+"hole.front.number" = "前%d洞";
+"hole.back.number" = "后%d洞";
+
+// MARK: - Date Time Format
+"datetime.format.with.seconds" = "yyyy-MM-dd HH:mm:ss";
 
 // MARK: - Home View Updates
 "home.current.status" = "当前状态";

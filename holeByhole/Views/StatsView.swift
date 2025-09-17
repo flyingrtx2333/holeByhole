@@ -272,6 +272,18 @@ struct ScoreDistributionView: View {
         return 999 // 未知成绩排在最后
     }
     
+    // 为柱状图获取对应颜色的函数
+    private func scoreColorForChart(scoreString: String) -> Color {
+        if scoreString == "score.eagle".localized { return .yellow } // Eagle - 金色
+        else if scoreString == "score.birdie".localized { return .red } // Birdie - 红色
+        else if scoreString == "score.par".localized { return .blue } // Par - 蓝色
+        else if scoreString == "score.bogey".localized { return .green } // Bogey - 绿色
+        else if scoreString == "score.double.bogey".localized { return Color(red: 0, green: 0.5, blue: 0) } // Double bogey - 深绿色
+        else if scoreString.hasPrefix("+") { return .gray } // 更差的成绩 - 灰色
+        else if let score = Int(scoreString), score > 2 { return .gray } // 更差的成绩 - 灰色
+        else { return .gray } // 默认灰色
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("stats.score.distribution".localized)
@@ -286,7 +298,7 @@ struct ScoreDistributionView: View {
                             x: .value("Score", score),
                             y: .value("Count", count)
                         )
-                        .foregroundStyle(.green)
+                        .foregroundStyle(scoreColorForChart(scoreString: score))
                     }
                 }
                 .frame(height: 200)

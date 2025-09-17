@@ -11,8 +11,11 @@ import SwiftData
 struct HoleDiaryView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \GolfHole.createdAt, order: .reverse) private var allHoles: [GolfHole]
+    @Query private var allCourses: [GolfCourse]
+    @StateObject private var localizationManager = LocalizationManager.shared
     @State private var selectedFilter: DiaryFilter = .all
-    @State private var searchText = ""
+    @State private var selectedScoreFilter: ScoreFilter = .all
+    @State private var selectedCourseFilter: GolfCourse? = nil
     @State private var showingDeleteAlert = false
     @State private var holesToDelete: IndexSet = []
     
@@ -23,25 +26,38 @@ struct HoleDiaryView: View {
         switch selectedFilter {
         case .all:
             break
-        case .withVideos:
-            holes = holes.filter { !$0.videos.isEmpty }
-        case .withScores:
-            holes = holes.filter { $0.myStrokes != nil }
-        case .recent:
-            let oneWeekAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
-            holes = holes.filter { $0.createdAt >= oneWeekAgo }
-        }
-        
-        // Apply search
-        if !searchText.isEmpty {
+        case .byScore:
             holes = holes.filter { hole in
-                hole.course?.name.localizedCaseInsensitiveContains(searchText) == true ||
-                hole.notes?.localizedCaseInsensitiveContains(searchText) == true ||
-                hole.weather?.localizedCaseInsensitiveContains(searchText) == true
+                guard let myStrokes = hole.myStrokes else { return false }
+                let score = myStrokes - hole.par
+                return scoreFilterMatches(score: score)
+            }
+        case .byCourse:
+            if let selectedCourse = selectedCourseFilter {
+                holes = holes.filter { $0.course?.id == selectedCourse.id }
             }
         }
         
         return holes
+    }
+    
+    private func scoreFilterMatches(score: Int) -> Bool {
+        switch selectedScoreFilter {
+        case .all:
+            return true
+        case .eagle:
+            return score <= -2
+        case .birdie:
+            return score == -1
+        case .par:
+            return score == 0
+        case .bogey:
+            return score == 1
+        case .doubleBogey:
+            return score == 2
+        case .worse:
+            return score > 2
+        }
     }
     
     var body: some View {
@@ -55,6 +71,26 @@ struct HoleDiaryView: View {
                 }
                 .pickerStyle(SegmentedPickerStyle())
                 .padding(.horizontal)
+                
+                // Secondary Filter
+                if selectedFilter == .byScore {
+                    Picker("diary.filter.by.score".localized, selection: $selectedScoreFilter) {
+                        ForEach(ScoreFilter.allCases, id: \.self) { filter in
+                            Text(filter.displayName).tag(filter)
+                        }
+                    }
+                    .pickerStyle(SegmentedPickerStyle())
+                    .padding(.horizontal)
+                } else if selectedFilter == .byCourse {
+                    Picker("diary.filter.by.course".localized, selection: $selectedCourseFilter) {
+                        Text("diary.course.filter.all".localized).tag(nil as GolfCourse?)
+                        ForEach(allCourses, id: \.id) { course in
+                            Text(course.name).tag(course as GolfCourse?)
+                        }
+                    }
+                    .pickerStyle(MenuPickerStyle())
+                    .padding(.horizontal)
+                }
                 
                 if filteredHoles.isEmpty {
                     EmptyDiaryView(filter: selectedFilter)
@@ -71,7 +107,10 @@ struct HoleDiaryView: View {
                 }
             }
             .navigationTitle("diary.title".localized)
-            .searchable(text: $searchText, prompt: "diary.search.entries".localized)
+            .onChange(of: localizationManager.currentLanguage) { _, _ in
+                // Force view refresh when language changes
+            }
+            .id(localizationManager.currentLanguage) // Force view refresh when language changes
             .alert("common.delete".localized, isPresented: $showingDeleteAlert) {
                 Button("common.cancel".localized, role: .cancel) { }
                 Button("common.delete".localized, role: .destructive) {
@@ -120,20 +159,36 @@ struct HoleDiaryView: View {
 }
 
 enum DiaryFilter: CaseIterable {
-    case all, withVideos, withScores, recent
+    case all, byScore, byCourse
     
     var displayName: String {
         switch self {
         case .all: return "diary.filter.all".localized
-        case .withVideos: return "diary.filter.videos".localized
-        case .withScores: return "diary.filter.scores".localized
-        case .recent: return "diary.filter.recent".localized
+        case .byScore: return "diary.filter.by.score".localized
+        case .byCourse: return "diary.filter.by.course".localized
+        }
+    }
+}
+
+enum ScoreFilter: CaseIterable {
+    case all, eagle, birdie, par, bogey, doubleBogey, worse
+    
+    var displayName: String {
+        switch self {
+        case .all: return "diary.filter.all".localized
+        case .eagle: return "diary.score.filter.eagle".localized
+        case .birdie: return "diary.score.filter.birdie".localized
+        case .par: return "diary.score.filter.par".localized
+        case .bogey: return "diary.score.filter.bogey".localized
+        case .doubleBogey: return "diary.score.filter.double.bogey".localized
+        case .worse: return "diary.score.filter.worse".localized
         }
     }
 }
 
 struct HoleDiaryRowView: View {
     let hole: GolfHole
+    @StateObject private var localizationManager = LocalizationManager.shared
     
     var body: some View {
         HStack {
@@ -168,7 +223,7 @@ struct HoleDiaryRowView: View {
                 }
                 
                 HStack {
-                    Text(hole.createdAt, style: .date)
+                    Text(hole.createdAt.formattedDate)
                         .font(.caption2)
                         .foregroundColor(.secondary)
                     
@@ -204,12 +259,14 @@ struct HoleDiaryRowView: View {
             }
         }
         .padding(.vertical, 4)
+        .id(localizationManager.currentLanguage) // Force view refresh when language changes
     }
     
 }
 
 struct EmptyDiaryView: View {
     let filter: DiaryFilter
+    @StateObject private var localizationManager = LocalizationManager.shared
     
     var body: some View {
         VStack(spacing: 20) {
@@ -228,18 +285,17 @@ struct EmptyDiaryView: View {
                 .padding(.horizontal, 40)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .id(localizationManager.currentLanguage) // Force view refresh when language changes
     }
     
     private var emptyMessage: String {
         switch filter {
         case .all:
             return "diary.empty.message.all".localized
-        case .withVideos:
-            return "diary.empty.message.videos".localized
-        case .withScores:
+        case .byScore:
             return "diary.empty.message.scores".localized
-        case .recent:
-            return "diary.empty.message.recent".localized
+        case .byCourse:
+            return "diary.empty.message.all".localized
         }
     }
 }

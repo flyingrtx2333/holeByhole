@@ -257,7 +257,7 @@ struct RecentHoleCard: View {
                         .foregroundColor(.secondary)
                 }
                 
-                Text(hole.createdAt, style: .relative)
+                Text(hole.createdAt.formattedDateTime)
                     .font(.caption2)
                     .foregroundColor(.secondary)
             }
