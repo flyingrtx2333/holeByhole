@@ -17,6 +17,13 @@ struct HoleRecordDetailView: View {
     @State private var showingVideoRecording = false
     @State private var showingVideoSelection = false
     @State private var showingActionSheet = false
+    @State private var selectedStrokes: Int
+    @State private var isEditingStrokes = false
+    
+    init(hole: GolfHole) {
+        self.hole = hole
+        self._selectedStrokes = State(initialValue: hole.myStrokes ?? 0)
+    }
     
     var body: some View {
         ScrollView {
@@ -45,34 +52,58 @@ struct HoleRecordDetailView: View {
                 }
                 .padding(.horizontal)
                 
-                // Score Card
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("hole.record.score".localized)
-                            .font(.headline)
+                // Strokes Card
+                VStack(spacing: 16) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("edit.hole.my.strokes".localized)
+                                .font(.headline)
+                            
+                            if selectedStrokes == 0 {
+                                Text("hole.record.no.score".localized)
+                                    .font(.title)
+                                    .foregroundColor(.secondary)
+                            } else {
+                                Text("\(selectedStrokes)")
+                                    .font(.title)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(scoreColor(score: selectedStrokes, par: hole.par))
+                            }
+                        }
                         
-                        if let myStrokes = hole.myStrokes {
-                            Text("\(myStrokes)")
+                        Spacer()
+                        
+                        VStack(alignment: .trailing, spacing: 4) {
+                            Text("hole.record.par".localized)
+                                .font(.headline)
+                            
+                            Text("\(hole.par)")
                                 .font(.title)
                                 .fontWeight(.bold)
-                                .foregroundColor(scoreColor(score: myStrokes, par: hole.par))
-                        } else {
-                            Text("hole.record.no.score".localized)
-                                .font(.title)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(.green)
                         }
                     }
                     
-                    Spacer()
-                    
-                    VStack(alignment: .trailing, spacing: 4) {
-                        Text("hole.record.par".localized)
-                            .font(.headline)
+                    // Strokes Picker
+                    VStack(spacing: 8) {
+                        Text("hole.strokes.picker.title".localized)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                         
-                        Text("\(hole.par)")
-                            .font(.title)
-                            .fontWeight(.bold)
-                            .foregroundColor(.green)
+                        Picker("杆数", selection: $selectedStrokes) {
+                            ForEach(-99...99, id: \.self) { stroke in
+                                if stroke == 0 {
+                                    Text("hole.record.no.score".localized).tag(0)
+                                } else {
+                                    Text("\(stroke)").tag(stroke)
+                                }
+                            }
+                        }
+                        .pickerStyle(WheelPickerStyle())
+                        .frame(height: 120)
+                        .onChange(of: selectedStrokes) { _, newValue in
+                            updateHoleStrokes(newValue)
+                        }
                     }
                 }
                 .padding()
@@ -203,6 +234,20 @@ struct HoleRecordDetailView: View {
                (hole.mood?.isEmpty == false) ||
                (hole.strategy?.isEmpty == false) ||
                (hole.notes?.isEmpty == false)
+    }
+    
+    private func updateHoleStrokes(_ strokes: Int) {
+        if strokes == 0 {
+            hole.myStrokes = nil
+        } else {
+            hole.myStrokes = strokes
+        }
+        
+        do {
+            try modelContext.save()
+        } catch {
+            print("Failed to save hole strokes: \(error)")
+        }
     }
     
 }

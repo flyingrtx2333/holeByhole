@@ -55,12 +55,27 @@ struct VideoRecordingView: View {
     @State private var currentClubType: ClubType
     @State private var currentShotType: ShotType
     @State private var showingSettings = false
+    @State private var showingZoomControls = false
+    @State private var lastZoomScale: CGFloat = 1.0
     
     var body: some View {
         ZStack {
             // Camera Preview
             CameraPreviewView(session: cameraManager.captureSession)
                 .ignoresSafeArea()
+                .scaleEffect(cameraManager.currentZoomFactor)
+                .gesture(
+                    MagnificationGesture()
+                        .onChanged { value in
+                            let delta = value / lastZoomScale
+                            lastZoomScale = value
+                            let newZoom = cameraManager.currentZoomFactor * delta
+                            cameraManager.setZoomFactor(newZoom)
+                        }
+                        .onEnded { _ in
+                            lastZoomScale = 1.0
+                        }
+                )
             
             VStack {
                 // Top Info Bar
@@ -85,6 +100,15 @@ struct VideoRecordingView: View {
                         Text(currentShotType.displayName)
                             .font(.caption)
                             .foregroundColor(.white.opacity(0.8))
+                        
+                        // 变焦显示
+                        Text(String(format: "%.1fx", cameraManager.currentZoomFactor))
+                            .font(.caption2)
+                            .foregroundColor(.white.opacity(0.6))
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 2)
+                            .background(Color.black.opacity(0.3))
+                            .cornerRadius(4)
                     }
                 }
                 .padding()
@@ -134,6 +158,18 @@ struct VideoRecordingView: View {
                             .clipShape(Circle())
                     }
                     
+                    // Zoom Controls Button
+                    Button(action: {
+                        showingZoomControls.toggle()
+                    }) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.title)
+                            .foregroundColor(.white)
+                            .frame(width: 50, height: 50)
+                            .background(Color.black.opacity(0.5))
+                            .clipShape(Circle())
+                    }
+                    
                     // Record Button
                     Button(action: {
                         if isRecording {
@@ -175,6 +211,79 @@ struct VideoRecordingView: View {
                     }
                 }
                 .padding(.bottom, 50)
+                
+                // 变焦控制面板
+                if showingZoomControls {
+                    VStack(spacing: 16) {
+                        // 变焦滑块
+                        VStack(spacing: 8) {
+                            HStack {
+                                Text("1x")
+                                    .font(.caption)
+                                    .foregroundColor(.white)
+                                Spacer()
+                                Text(String(format: "%.1fx", cameraManager.currentZoomFactor))
+                                    .font(.caption)
+                                    .foregroundColor(.white)
+                                Spacer()
+                                Text(String(format: "%.1fx", cameraManager.maxZoomFactor))
+                                    .font(.caption)
+                                    .foregroundColor(.white)
+                            }
+                            
+                            Slider(
+                                value: Binding(
+                                    get: { cameraManager.currentZoomFactor },
+                                    set: { cameraManager.setZoomFactor($0) }
+                                ),
+                                in: 1.0...cameraManager.maxZoomFactor
+                            )
+                            .accentColor(.white)
+                        }
+                        .padding(.horizontal, 20)
+                        
+                        // 变焦按钮
+                        HStack(spacing: 20) {
+                            Button(action: {
+                                cameraManager.zoomOut()
+                            }) {
+                                Image(systemName: "minus.magnifyingglass")
+                                    .font(.title2)
+                                    .foregroundColor(.white)
+                                    .frame(width: 44, height: 44)
+                                    .background(Color.black.opacity(0.6))
+                                    .clipShape(Circle())
+                            }
+                            
+                            Button(action: {
+                                cameraManager.resetZoom()
+                            }) {
+                                Text("1x")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                    .frame(width: 44, height: 44)
+                                    .background(Color.black.opacity(0.6))
+                                    .clipShape(Circle())
+                            }
+                            
+                            Button(action: {
+                                cameraManager.zoomIn()
+                            }) {
+                                Image(systemName: "plus.magnifyingglass")
+                                    .font(.title2)
+                                    .foregroundColor(.white)
+                                    .frame(width: 44, height: 44)
+                                    .background(Color.black.opacity(0.6))
+                                    .clipShape(Circle())
+                            }
+                        }
+                    }
+                    .padding()
+                    .background(Color.black.opacity(0.7))
+                    .cornerRadius(16)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 100)
+                }
             }
         }
         .onAppear {

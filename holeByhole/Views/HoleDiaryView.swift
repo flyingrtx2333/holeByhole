@@ -7,6 +7,8 @@
 
 import SwiftUI
 import SwiftData
+import AVKit
+import AVFoundation
 
 struct HoleDiaryView: View {
     @Environment(\.modelContext) private var modelContext
@@ -17,7 +19,9 @@ struct HoleDiaryView: View {
     @State private var selectedScoreFilter: ScoreFilter = .all
     @State private var selectedCourseFilter: GolfCourse? = nil
     @State private var showingDeleteAlert = false
-    @State private var holesToDelete: IndexSet = []
+    @State private var holesToDelete: [GolfHole] = []
+    @State private var currentIndex: Int = 0
+    @State private var dragOffset: CGFloat = 0
     
     var filteredHoles: [GolfHole] {
         var holes = allHoles
@@ -62,8 +66,10 @@ struct HoleDiaryView: View {
     
     var body: some View {
         NavigationView {
-            VStack {
-                // Filter Picker
+            VStack(spacing: 0) {
+                // Filter Section
+        VStack(spacing: 12) {
+                    // Primary Filter
                 Picker("diary.filter".localized, selection: $selectedFilter) {
                     ForEach(DiaryFilter.allCases, id: \.self) { filter in
                         Text(filter.displayName).tag(filter)
@@ -81,7 +87,7 @@ struct HoleDiaryView: View {
                     }
                     .pickerStyle(SegmentedPickerStyle())
                     .padding(.horizontal)
-                } else if selectedFilter == .byCourse {
+                    } else if selectedFilter == .byCourse {
                     Picker("diary.filter.by.course".localized, selection: $selectedCourseFilter) {
                         Text("diary.course.filter.all".localized).tag(nil as GolfCourse?)
                         ForEach(allCourses, id: \.id) { course in
@@ -91,30 +97,52 @@ struct HoleDiaryView: View {
                     .pickerStyle(MenuPickerStyle())
                     .padding(.horizontal)
                 }
+                }
+                .padding(.top, 10)
+                .background(Color(UIColor.systemBackground))
                 
                 if filteredHoles.isEmpty {
                     EmptyDiaryView(filter: selectedFilter)
                 } else {
-                    List {
-                        ForEach(filteredHoles) { hole in
-                            NavigationLink(destination: HoleRecordDetailView(hole: hole)) {
-                                HoleDiaryRowView(hole: hole)
+                    // Card Carousel
+                    GeometryReader { geometry in
+                        DiaryCardCarouselView(
+                            holes: filteredHoles,
+                            currentIndex: $currentIndex,
+                            dragOffset: $dragOffset,
+            onVideoTap: { video in
+                                // 视频在卡片内播放，不需要设置全屏
+                            },
+                            onDelete: { hole in
+                                holesToDelete = [hole]
+                                showingDeleteAlert = true
                             }
-                        }
-                        .onDelete(perform: showDeleteConfirmation)
+                        )
                     }
-                    .listStyle(PlainListStyle())
+                    .clipped()
                 }
             }
             .navigationTitle("diary.title".localized)
             .onChange(of: localizationManager.currentLanguage) { _, _ in
                 // Force view refresh when language changes
             }
-            .id(localizationManager.currentLanguage) // Force view refresh when language changes
+            .onChange(of: selectedFilter) { _, _ in
+                currentIndex = 0
+                dragOffset = 0
+            }
+            .onChange(of: selectedScoreFilter) { _, _ in
+                currentIndex = 0
+                dragOffset = 0
+            }
+            .onChange(of: selectedCourseFilter) { _, _ in
+                currentIndex = 0
+            dragOffset = 0
+        }
+            .id(localizationManager.currentLanguage)
             .alert("common.delete".localized, isPresented: $showingDeleteAlert) {
                 Button("common.cancel".localized, role: .cancel) { }
                 Button("common.delete".localized, role: .destructive) {
-                    deleteHoles(offsets: holesToDelete)
+                    deleteHoles()
                 }
             } message: {
                 Text("diary.delete.confirmation".localized)
@@ -122,16 +150,9 @@ struct HoleDiaryView: View {
         }
     }
     
-    private func showDeleteConfirmation(offsets: IndexSet) {
-        holesToDelete = offsets
-        showingDeleteAlert = true
-    }
-    
-    private func deleteHoles(offsets: IndexSet) {
+    private func deleteHoles() {
         withAnimation {
-            for index in offsets {
-                let hole = filteredHoles[index]
-                
+            for hole in holesToDelete {
                 // Delete associated video files and thumbnails
                 for video in hole.videos {
                     // Delete video file
@@ -155,6 +176,7 @@ struct HoleDiaryView: View {
                 print("Failed to delete holes: \(error)")
             }
         }
+        holesToDelete = []
     }
 }
 
@@ -186,83 +208,397 @@ enum ScoreFilter: CaseIterable {
     }
 }
 
-struct HoleDiaryRowView: View {
-    let hole: GolfHole
-    @StateObject private var localizationManager = LocalizationManager.shared
+// MARK: - Card Carousel View
+struct DiaryCardCarouselView: View {
+    let holes: [GolfHole]
+    @Binding var currentIndex: Int
+    @Binding var dragOffset: CGFloat
+    let onVideoTap: (GolfVideo) -> Void
+    let onDelete: (GolfHole) -> Void
     
     var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(String(format: hole.holeSide == .front ? "hole.front.number".localized : "hole.back.number".localized, hole.holeNumber))
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                    
-                    if let course = hole.course {
-                        Text("• \(course.name)")
+        GeometryReader { geometry in
+            let cardWidth = geometry.size.width * 0.8
+            let cardSpacing: CGFloat = 20
+            let sideCardScale: CGFloat = 0.85
+            
+            HStack(spacing: cardSpacing) {
+                ForEach(Array(holes.enumerated()), id: \.element.id) { index, hole in
+                     DiaryCardView(
+                         hole: hole,
+                         isCenter: index == currentIndex,
+                         onVideoTap: onVideoTap,
+                         onDelete: onDelete
+                     )
+                    .frame(width: cardWidth)
+                    .scaleEffect(index == currentIndex ? 1.0 : sideCardScale)
+                    .opacity(index == currentIndex ? 1.0 : 0.7)
+                    .animation(.spring(response: 0.6, dampingFraction: 0.8), value: currentIndex)
+                    .animation(.spring(response: 0.6, dampingFraction: 0.8), value: dragOffset)
+                }
+            }
+            .offset(x: -CGFloat(currentIndex) * (cardWidth + cardSpacing) + (geometry.size.width - cardWidth) / 2 + dragOffset)
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        dragOffset = value.translation.width
+                    }
+                    .onEnded { value in
+                        let threshold: CGFloat = 50
+                        withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                            if value.translation.width > threshold && currentIndex > 0 {
+                                currentIndex -= 1
+                            } else if value.translation.width < -threshold && currentIndex < holes.count - 1 {
+                                currentIndex += 1
+                            }
+                            dragOffset = 0
+                        }
+                    }
+            )
+        }
+        .padding(.vertical, 20)
+    }
+}
+
+// MARK: - Individual Card View
+struct DiaryCardView: View {
+    let hole: GolfHole
+    let isCenter: Bool
+    let onVideoTap: (GolfVideo) -> Void
+    let onDelete: (GolfHole) -> Void
+    @StateObject private var localizationManager = LocalizationManager.shared
+    @State private var isPlayingVideo = false
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Video Preview Section
+            ZStack {
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(LinearGradient(
+                        gradient: Gradient(colors: [Color.blue.opacity(0.1), Color.purple.opacity(0.1)]),
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ))
+                    .frame(height: 200)
+                
+                if let firstVideo = hole.videos.first {
+                    VideoPreviewView(video: firstVideo, isPlaying: $isPlayingVideo)
+                        .frame(height: 200)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                } else {
+                    VStack(spacing: 12) {
+                        Image(systemName: "video.slash")
+                            .font(.system(size: 40))
+                            .foregroundColor(.secondary)
+                        Text("diary.card.no.video".localized)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
                 }
                 
-                if let myStrokes = hole.myStrokes {
-                    Text(String(format: "diary.score.format".localized, myStrokes, hole.par))
-                        .font(.subheadline)
-                        .foregroundColor(scoreColor(score: myStrokes, par: hole.par))
-                } else {
-                    Text(String(format: "diary.par.format".localized, hole.par))
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-                
-                if let notes = hole.notes, !notes.isEmpty {
-                    Text(notes)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .lineLimit(2)
-                }
-                
-                HStack {
-                    Text(hole.createdAt.formattedDate)
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                    
-                    if !hole.videos.isEmpty {
-                        HStack(spacing: 4) {
-                            Image(systemName: "video.fill")
+                // Video count badge
+                if hole.videos.count > 1 {
+                    VStack {
+                        HStack {
+                            Spacer()
+                            Text(String(format: "diary.card.videos.count".localized, hole.videos.count))
                                 .font(.caption2)
-                            Text("\(hole.videos.count)")
-                                .font(.caption2)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.black.opacity(0.7))
+                                .foregroundColor(.white)
+                                .clipShape(Capsule())
+                                .padding(.top, 12)
+                                .padding(.trailing, 12)
                         }
+                        Spacer()
+                    }
+                }
+                
+                // Play/Pause button overlay
+                if !hole.videos.isEmpty {
+                    Button(action: {
+                        isPlayingVideo.toggle()
+                    }) {
+                        Circle()
+                            .fill(Color.black.opacity(0.6))
+                            .frame(width: 60, height: 60)
+                            .overlay(
+                                Image(systemName: isPlayingVideo ? "pause.fill" : "play.fill")
+                                    .font(.title2)
+                                    .foregroundColor(.white)
+                                    .offset(x: isPlayingVideo ? 0 : 2)
+                            )
+                    }
+                    .scaleEffect(isCenter ? 1.0 : 0.8)
+                    .animation(.easeInOut(duration: 0.3), value: isCenter)
+                    .animation(.easeInOut(duration: 0.2), value: isPlayingVideo)
+                }
+            }
+            
+            // Card Information Section
+            VStack(spacing: 16) {
+                // Header with hole info
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(String(format: hole.holeSide == .front ? "hole.front.number".localized : "hole.back.number".localized, hole.holeNumber))
+                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                            .foregroundColor(.primary)
+                        
+                        if let course = hole.course {
+                            Text(course.name)
+                                .font(.system(size: 14, weight: .medium, design: .rounded))
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    VStack(alignment: .trailing, spacing: 4) {
+                        if let myStrokes = hole.myStrokes {
+                            Text("\(myStrokes)")
+                                .font(.system(size: 28, weight: .bold, design: .rounded))
+                                .foregroundColor(scoreColor(score: myStrokes, par: hole.par))
+                        } else {
+                            Text("—")
+                                .font(.system(size: 28, weight: .bold, design: .rounded))
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Text(String(format: "diary.card.par".localized + " %d", hole.par))
+                            .font(.system(size: 12, weight: .medium, design: .rounded))
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                // Information Grid
+                LazyVGrid(columns: [
+                    GridItem(.flexible()),
+                    GridItem(.flexible())
+                ], spacing: 12) {
+                    InfoCardItem(
+                        icon: "calendar",
+                        title: "diary.card.date".localized,
+                        value: hole.createdAt.formattedDate
+                    )
+                    
+                    InfoCardItem(
+                        icon: "cloud.sun",
+                        title: "diary.card.weather".localized,
+                        value: hole.weather ?? "diary.card.no.weather".localized
+                    )
+                    
+                    InfoCardItem(
+                        icon: "face.smiling",
+                        title: "diary.card.mood".localized,
+                        value: hole.mood ?? "diary.card.no.mood".localized
+                    )
+                    
+                    InfoCardItem(
+                        icon: "target",
+                        title: "diary.card.strategy".localized,
+                        value: hole.strategy ?? "diary.card.no.strategy".localized
+                    )
+                }
+                
+                // Notes Section
+                if let notes = hole.notes, !notes.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Image(systemName: "note.text")
+                                .foregroundColor(.secondary)
+                            Text("diary.card.notes".localized)
+                                .font(.system(size: 14, weight: .medium, design: .rounded))
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Text(notes)
+                            .font(.system(size: 16, weight: .regular, design: .rounded))
+                            .foregroundColor(.primary)
+                            .multilineTextAlignment(.leading)
+                            .lineLimit(3)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Color.gray.opacity(0.1))
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+                }
+                
+                // Action Buttons
+                HStack(spacing: 16) {
+                    Button(action: {
+                        onDelete(hole)
+                    }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "trash")
+                            Text("common.delete".localized)
+                        }
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .foregroundColor(.red)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(Color.red.opacity(0.1))
+                        .clipShape(Capsule())
+                    }
+                    
+                    Spacer()
+                    
+                    NavigationLink(destination: HoleRecordDetailView(hole: hole)) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "info.circle")
+                            Text("common.edit".localized)
+                        }
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
                         .foregroundColor(.blue)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(Color.blue.opacity(0.1))
+                        .clipShape(Capsule())
                     }
                 }
             }
-            
-            Spacer()
-            
-            VStack(alignment: .trailing, spacing: 4) {
-                if let myStrokes = hole.myStrokes {
-                    Text("\(myStrokes)")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(scoreColor(score: myStrokes, par: hole.par))
-                } else {
-                    Text("—")
-                        .font(.title2)
-                        .foregroundColor(.secondary)
-                }
-                
-                Text(String(format: "diary.par.format".localized, hole.par))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+            .padding(20)
+            .background(Color(UIColor.systemBackground))
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color(UIColor.systemBackground))
+                .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+        )
+        .onChange(of: isCenter) { _, newIsCenter in
+            // 当卡片不再是中心时，停止视频播放
+            if !newIsCenter && isPlayingVideo {
+                isPlayingVideo = false
             }
         }
-        .padding(.vertical, 4)
-        .id(localizationManager.currentLanguage) // Force view refresh when language changes
+        .id(localizationManager.currentLanguage)
+    }
+}
+
+// MARK: - Info Card Item
+struct InfoCardItem: View {
+    let icon: String
+    let title: String
+    let value: String
+    
+    var body: some View {
+        VStack(spacing: 6) {
+            Image(systemName: icon)
+                .foregroundColor(.secondary)
+                .font(.system(size: 16))
+            
+            Text(title)
+                .font(.system(size: 12, weight: .medium, design: .rounded))
+                .foregroundColor(.secondary)
+            
+            Text(value)
+                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .foregroundColor(.primary)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
+        .background(Color.gray.opacity(0.05))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+// MARK: - Video Preview View
+struct VideoPreviewView: View {
+    let video: GolfVideo
+    @Binding var isPlaying: Bool
+    @State private var thumbnailImage: UIImage?
+    @State private var player: AVPlayer?
+    
+    var body: some View {
+        ZStack {
+            if isPlaying, let player = player {
+                VideoPlayer(player: player)
+                    .onAppear {
+                        player.play()
+                    }
+                    .onDisappear {
+                        player.pause()
+                        player.seek(to: .zero)
+                    }
+            } else {
+                // 显示缩略图
+                if let thumbnailImage = thumbnailImage {
+                    Image(uiImage: thumbnailImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                } else {
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.3))
+                        .overlay(
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle())
+                        )
+                }
+            }
+        }
+        .onAppear {
+            loadThumbnail()
+            setupPlayer()
+        }
+        .onTapGesture {
+            togglePlayback()
+        }
     }
     
+    private func loadThumbnail() {
+        guard thumbnailImage == nil else { return }
+        
+        if let thumbnailPath = video.thumbnailPath,
+           let image = UIImage(contentsOfFile: thumbnailPath) {
+            thumbnailImage = image
+        } else {
+            // Generate thumbnail from video
+            let videoURL = URL(fileURLWithPath: video.filePath)
+            generateThumbnail(from: videoURL) { image in
+                DispatchQueue.main.async {
+                    self.thumbnailImage = image
+                }
+            }
+        }
+    }
+    
+    private func generateThumbnail(from url: URL, completion: @escaping (UIImage?) -> Void) {
+        let asset = AVAsset(url: url)
+        let imageGenerator = AVAssetImageGenerator(asset: asset)
+        imageGenerator.appliesPreferredTrackTransform = true
+        
+        let time = CMTime(seconds: 1, preferredTimescale: 60)
+        
+        imageGenerator.generateCGImagesAsynchronously(forTimes: [NSValue(time: time)]) { _, image, _, _, _ in
+            if let cgImage = image {
+                completion(UIImage(cgImage: cgImage))
+            } else {
+                completion(nil)
+            }
+        }
+    }
+    
+    private func setupPlayer() {
+        let videoURL = URL(fileURLWithPath: video.filePath)
+        player = AVPlayer(url: videoURL)
+    }
+    
+    private func togglePlayback() {
+        isPlaying.toggle()
+        
+        if isPlaying {
+            if player == nil {
+                setupPlayer()
+            }
+        } else {
+            player?.pause()
+            player?.seek(to: .zero)
+        }
+    }
 }
+
 
 struct EmptyDiaryView: View {
     let filter: DiaryFilter

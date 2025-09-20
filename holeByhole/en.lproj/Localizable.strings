@@ -21,6 +21,7 @@
 "home.start.new.round" = "Start New Round";
 "home.browse.courses" = "Browse Courses";
 "home.recent.activity" = "Recent Activity";
+"home.no.activity" = "No Recent Activity";
 "home.no.courses" = "No Courses Yet";
 "home.add.first.course" = "Add your first golf course to start recording your rounds";
 
@@ -469,6 +470,7 @@
 // MARK: - Edit Hole Updates
 "edit.hole.my.strokes" = "My Strokes";
 "edit.hole.my.strokes.placeholder" = "Enter strokes";
+"hole.strokes.picker.title" = "Drag to select strokes";
 
 // MARK: - Score Display
 "score.par" = "Par";
@@ -507,3 +509,32 @@
 "location.search.placeholder" = "Search for places...";
 "location.drag.to.select" = "Drag map to select location";
 "common.confirm" = "Confirm";
+
+// MARK: - Camera Zoom
+"camera.zoom.title" = "Zoom Control";
+"camera.zoom.current" = "Current Zoom";
+"camera.zoom.max" = "Max Zoom";
+"camera.zoom.reset" = "Reset Zoom";
+"camera.zoom.in" = "Zoom In";
+"camera.zoom.out" = "Zoom Out";
+"camera.zoom.gesture.hint" = "Pinch to zoom";
+
+// MARK: - Diary Card View
+"diary.card.course" = "Course";
+"diary.card.round" = "Round";
+"diary.card.hole" = "Hole";
+"diary.card.par" = "Par";
+"diary.card.score" = "Score";
+"diary.card.weather" = "Weather";
+"diary.card.mood" = "Mood";
+"diary.card.strategy" = "Strategy";
+"diary.card.notes" = "Notes";
+"diary.card.no.weather" = "No weather recorded";
+"diary.card.no.mood" = "No mood recorded";
+"diary.card.no.strategy" = "No strategy recorded";
+"diary.card.no.notes" = "No notes recorded";
+"diary.card.tap.to.play" = "Tap to play/pause";
+"diary.card.no.video" = "No video";
+"diary.card.videos.count" = "%d videos";
+"diary.card.date" = "Date";
+"diary.card.swipe.hint" = "Swipe to browse more records";

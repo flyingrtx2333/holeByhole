@@ -20,6 +20,8 @@ class CameraManager: NSObject, ObservableObject {
     
     @Published var isSessionRunning = false
     @Published var hasPermission = false
+    @Published var currentZoomFactor: CGFloat = 1.0
+    @Published var maxZoomFactor: CGFloat = 1.0
     
     override init() {
         super.init()
@@ -39,6 +41,9 @@ class CameraManager: NSObject, ObservableObject {
         self.backCamera = backCamera
         self.frontCamera = frontCamera
         self.currentCamera = backCamera
+        
+        // 设置最大变焦倍数
+        self.maxZoomFactor = min(backCamera.activeFormat.videoMaxZoomFactor, 10.0)
     }
     
     private func checkPermissions() {
@@ -131,6 +136,10 @@ class CameraManager: NSObject, ObservableObject {
         isBackCamera.toggle()
         currentCamera = isBackCamera ? backCamera : frontCamera
         
+        // 更新最大变焦倍数
+        updateMaxZoomFactor()
+        currentZoomFactor = 1.0
+        
         // Add new input
         do {
             let newInput = try AVCaptureDeviceInput(device: currentCamera!)
@@ -196,6 +205,44 @@ class CameraManager: NSObject, ObservableObject {
     func stopSession() {
         captureSession.stopRunning()
         isSessionRunning = false
+    }
+    
+    // MARK: - 变焦功能
+    func setZoomFactor(_ zoomFactor: CGFloat) {
+        guard let camera = currentCamera else { return }
+        
+        let clampedZoom = max(1.0, min(zoomFactor, maxZoomFactor))
+        
+        do {
+            try camera.lockForConfiguration()
+            camera.videoZoomFactor = clampedZoom
+            camera.unlockForConfiguration()
+            
+            DispatchQueue.main.async {
+                self.currentZoomFactor = clampedZoom
+            }
+        } catch {
+            print("Error setting zoom factor: \(error)")
+        }
+    }
+    
+    func zoomIn() {
+        let newZoom = min(currentZoomFactor * 1.2, maxZoomFactor)
+        setZoomFactor(newZoom)
+    }
+    
+    func zoomOut() {
+        let newZoom = max(currentZoomFactor / 1.2, 1.0)
+        setZoomFactor(newZoom)
+    }
+    
+    func resetZoom() {
+        setZoomFactor(1.0)
+    }
+    
+    func updateMaxZoomFactor() {
+        guard let camera = currentCamera else { return }
+        maxZoomFactor = min(camera.activeFormat.videoMaxZoomFactor, 10.0)
     }
 }
 

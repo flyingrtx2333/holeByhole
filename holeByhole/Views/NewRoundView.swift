@@ -21,9 +21,11 @@ struct NewRoundView: View {
     @State private var isCreatingRound = false
     
     let onRoundCreated: ((GolfCourse, GolfRound) -> Void)?
+    let preselectedCourse: GolfCourse?
     
-    init(onRoundCreated: ((GolfCourse, GolfRound) -> Void)? = nil) {
+    init(onRoundCreated: ((GolfCourse, GolfRound) -> Void)? = nil, preselectedCourse: GolfCourse? = nil) {
         self.onRoundCreated = onRoundCreated
+        self.preselectedCourse = preselectedCourse
     }
     
     var body: some View {
@@ -154,6 +156,11 @@ struct NewRoundView: View {
             }
             .onChange(of: localizationManager.currentLanguage) { _, _ in
                 // Force view refresh when language changes
+            }
+            .onAppear {
+                if let preselectedCourse = preselectedCourse {
+                    selectedCourse = preselectedCourse
+                }
             }
         }
     }

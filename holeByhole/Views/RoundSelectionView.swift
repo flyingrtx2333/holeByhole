@@ -12,6 +12,7 @@ struct RoundSelectionView: View {
     let course: GolfCourse
     @Binding var selectedRound: GolfRound?
     @Environment(\.dismiss) private var dismiss
+    @State private var showingNewRound = false
     
     var sortedRounds: [GolfRound] {
         course.rounds.sorted { $0.roundNumber > $1.roundNumber }
@@ -19,37 +20,68 @@ struct RoundSelectionView: View {
     
     var body: some View {
         NavigationView {
-            VStack {
-                if sortedRounds.isEmpty {
-                    EmptyRoundsView(
-                        title: "round.selection.no.rounds".localized,
-                        message: "round.selection.create.first".localized
-                    )
-                } else {
-                    List {
-                        ForEach(sortedRounds) { round in
-                            RoundRowView(
-                                round: round,
-                                isSelected: selectedRound?.id == round.id
-                            ) {
-                                selectedRound = round
-                                dismiss()
-                            }
-                        }
-                    }
-                    .listStyle(PlainListStyle())
+            contentView
+                .navigationTitle("round.selection.title".localized)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    toolbarContent
                 }
-            }
-            .navigationTitle("round.selection.title".localized)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("common.cancel".localized) {
-                        dismiss()
-                    }
+                .sheet(isPresented: $showingNewRound) {
+                    newRoundSheet
+                }
+        }
+    }
+    
+    @ViewBuilder
+    private var contentView: some View {
+        if sortedRounds.isEmpty {
+            EmptyRoundsView(
+                title: "round.selection.no.rounds".localized,
+                message: "round.selection.create.first".localized
+            )
+        } else {
+            roundsList
+        }
+    }
+    
+    private var roundsList: some View {
+        List {
+            ForEach(sortedRounds) { round in
+                RoundRowView(
+                    round: round,
+                    isSelected: selectedRound?.id == round.id
+                ) {
+                    selectedRound = round
+                    dismiss()
                 }
             }
         }
+        .listStyle(PlainListStyle())
+    }
+    
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .navigationBarLeading) {
+            Button("common.cancel".localized) {
+                dismiss()
+            }
+        }
+        
+        ToolbarItem(placement: .navigationBarTrailing) {
+            Button(action: {
+                showingNewRound = true
+            }) {
+                Image(systemName: "plus")
+                    .font(.title3)
+            }
+        }
+    }
+    
+    private var newRoundSheet: some View {
+        NewRoundView(onRoundCreated: { course, round in
+            selectedRound = round
+            dismiss()
+        }, preselectedCourse: course)
     }
 }
 

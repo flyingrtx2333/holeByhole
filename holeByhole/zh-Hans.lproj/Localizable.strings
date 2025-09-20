@@ -21,6 +21,7 @@
 "home.start.new.round" = "开始新轮次";
 "home.browse.courses" = "浏览球场";
 "home.recent.activity" = "最近活动";
+"home.no.activity" = "暂无活动";
 "home.no.courses" = "暂无球场";
 "home.add.first.course" = "添加你的第一个高尔夫球场开始记录你的轮次";
 
@@ -470,6 +471,7 @@
 // MARK: - Edit Hole Updates
 "edit.hole.my.strokes" = "我的杆数";
 "edit.hole.my.strokes.placeholder" = "输入杆数";
+"hole.strokes.picker.title" = "拖拽选择杆数";
 
 // MARK: - Score Display
 "score.par" = "标准杆";
@@ -508,3 +510,32 @@
 "location.search.placeholder" = "搜索地点...";
 "location.drag.to.select" = "拖拽地图选择位置";
 "common.confirm" = "确认";
+
+// MARK: - Camera Zoom
+"camera.zoom.title" = "变焦控制";
+"camera.zoom.current" = "当前变焦";
+"camera.zoom.max" = "最大变焦";
+"camera.zoom.reset" = "重置变焦";
+"camera.zoom.in" = "放大";
+"camera.zoom.out" = "缩小";
+"camera.zoom.gesture.hint" = "双指捏合可调整变焦";
+
+// MARK: - Diary Card View
+"diary.card.course" = "球场";
+"diary.card.round" = "轮次";
+"diary.card.hole" = "球洞";
+"diary.card.par" = "标准杆";
+"diary.card.score" = "成绩";
+"diary.card.weather" = "天气";
+"diary.card.mood" = "心情";
+"diary.card.strategy" = "策略";
+"diary.card.notes" = "备注";
+"diary.card.no.weather" = "无天气记录";
+"diary.card.no.mood" = "无心情记录";
+"diary.card.no.strategy" = "无策略记录";
+"diary.card.no.notes" = "无备注";
+"diary.card.tap.to.play" = "点击播放/暂停";
+"diary.card.no.video" = "无视频";
+"diary.card.videos.count" = "%d个视频";
+"diary.card.date" = "日期";
+"diary.card.swipe.hint" = "滑动浏览更多记录";

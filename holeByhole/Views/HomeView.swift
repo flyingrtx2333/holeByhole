@@ -25,149 +25,154 @@ struct HomeView: View {
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    // Welcome Section - Only show when no course/round selected
-                    if currentCourse == nil || currentRound == nil {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("home.welcome".localized)
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
-                            
-                            Text("app.subtitle".localized)
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
+                VStack(spacing: 0) {
+                    // 球场大图背景区域
+                    ZStack(alignment: .bottomLeading) {
+                        // 球场背景图片
+                        if let course = currentCourse,
+                           let photoPath = course.photoPath,
+                           let image = AppFileManager.shared.loadCoursePhoto(from: photoPath) {
+                            Image(uiImage: image)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(height: 300)
+                                .clipped()
+                        } else {
+                            // 默认背景
+                            Rectangle()
+                                .fill(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [Color.green.opacity(0.8), Color.blue.opacity(0.6)]),
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(height: 300)
                         }
-                        .padding(.horizontal)
-                    }
-                    
-                    // Current Status
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("home.current.status".localized)
-                            .font(.headline)
                         
-                        VStack(spacing: 8) {
+                        // 渐变遮罩，确保文字可读性
+                        Rectangle()
+                            .fill(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [Color.clear, Color.black.opacity(0.7)]),
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                            .frame(height: 300)
+                        
+                        // 左下角：球场和轮次选择器
+                        VStack(alignment: .leading, spacing: 12) {
+                            // 球场选择器
                             Button(action: {
                                 showingCourseSelection = true
                             }) {
-                                HStack {
-                                    // 球场图片
-                                    if let course = currentCourse,
-                                       let photoPath = course.photoPath,
-                                       let image = AppFileManager.shared.loadCoursePhoto(from: photoPath) {
-                                        Image(uiImage: image)
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fill)
-                                            .frame(width: 40, height: 40)
-                                            .clipped()
-                                            .cornerRadius(8)
-                                    } else {
-                                        Image(systemName: "map.fill")
-                                            .font(.title2)
-                                            .foregroundColor(.secondary)
-                                            .frame(width: 40, height: 40)
-                                            .background(Color(.systemGray6))
-                                            .cornerRadius(8)
-                                    }
-                                    
+                                HStack(spacing: 8) {
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text("home.current.course".localized)
-                                            .foregroundColor(.secondary)
                                             .font(.caption)
+                                            .foregroundColor(.white.opacity(0.8))
                                         Text(currentCourse?.name ?? "home.no.course.selected".localized)
+                                            .font(.headline)
                                             .fontWeight(.semibold)
-                                            .foregroundColor(currentCourse == nil ? .secondary : .primary)
+                                            .foregroundColor(.white)
                                     }
                                     
-                                    Spacer()
-                                    
-                                    Image(systemName: "chevron.right")
-                                        .foregroundColor(.secondary)
+                                    Image(systemName: "chevron.down")
                                         .font(.caption)
+                                        .foregroundColor(.white.opacity(0.8))
                                 }
                             }
                             .buttonStyle(PlainButtonStyle())
                             
+                            // 轮次选择器
                             Button(action: {
                                 if currentCourse != nil {
                                     showingRoundSelection = true
                                 }
                             }) {
-                                HStack {
-                                    Text("home.current.round".localized)
-                                        .foregroundColor(.secondary)
-                                    Spacer()
-                                    Text(currentRound?.displayName ?? "home.no.round.selected".localized)
-                                        .fontWeight(.semibold)
-                                        .foregroundColor(currentRound == nil ? .secondary : .primary)
-                                    Image(systemName: "chevron.right")
-                                        .foregroundColor(.secondary)
+                                HStack(spacing: 8) {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("home.current.round".localized)
+                                            .font(.caption)
+                                            .foregroundColor(.white.opacity(0.8))
+                                        Text(currentRound?.displayName ?? "home.no.round.selected".localized)
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(.white)
+                                    }
+                                    
+                                    Image(systemName: "chevron.down")
                                         .font(.caption)
+                                        .foregroundColor(.white.opacity(0.8))
                                 }
                             }
                             .buttonStyle(PlainButtonStyle())
                             .disabled(currentCourse == nil)
                         }
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(12)
-                    }
-                    .padding(.horizontal)
-                    
-                    // Quick Actions
-                    VStack(spacing: 16) {
-                        Button(action: {
-                            showingNewRound = true
-                        }) {
-                            HStack {
-                                Image(systemName: "plus.circle.fill")
-                                    .font(.title2)
-                                Text("home.start.new.round".localized)
-                                    .font(.headline)
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .foregroundColor(.secondary)
-                            }
-                            .padding()
-                            .background(Color.green.opacity(0.1))
-                            .foregroundColor(.green)
-                            .cornerRadius(12)
-                        }
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 20)
                         
-                        Button(action: {
-                            showingRecordingSetup = true
-                        }) {
+                        // 右下角：开始录制按钮
+                        VStack {
+                            Spacer()
                             HStack {
-                                Image(systemName: "video.fill")
-                                    .font(.title2)
-                                Text("home.start.recording".localized)
-                                    .font(.headline)
                                 Spacer()
-                                Image(systemName: "chevron.right")
-                                    .foregroundColor(.secondary)
+                                Button(action: {
+                                    showingRecordingSetup = true
+                                }) {
+                                    Image(systemName: "video.fill")
+                                        .font(.title2)
+                                        .foregroundColor(.white)
+                                        .frame(width: 60, height: 60)
+                                        .background(
+                                            Circle()
+                                                .fill(currentRound == nil ? Color.gray : Color.red)
+                                                .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
+                                        )
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                .disabled(currentRound == nil)
+                                .padding(.trailing, 20)
+                                .padding(.bottom, 20)
                             }
-                            .padding()
-                            .background(currentRound == nil ? Color.gray.opacity(0.1) : Color.red.opacity(0.1))
-                            .foregroundColor(currentRound == nil ? .gray : .red)
-                            .cornerRadius(12)
                         }
-                        .disabled(currentRound == nil)
                     }
-                    .padding(.horizontal)
+                    .frame(height: 300)
                     
                     // Recent Activity
-                    if !recentHoles.isEmpty {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("home.recent.activity".localized)
-                                .font(.title2)
-                                .fontWeight(.semibold)
-                                .padding(.horizontal)
-                            
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("home.recent.activity".localized)
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                            .padding(.horizontal)
+                        
+                        if !recentHoles.isEmpty {
                             LazyVStack(spacing: 8) {
                                 ForEach(recentHoles.prefix(5)) { hole in
                                     RecentHoleCard(hole: hole)
                                 }
                             }
                             .padding(.horizontal)
+                        } else {
+                            // 暂无活动状态
+                            VStack(spacing: 12) {
+                                Image(systemName: "golf.circle")
+                                    .font(.system(size: 48))
+                                    .foregroundColor(.secondary)
+                                
+                                Text("home.no.activity".localized)
+                                    .font(.headline)
+                                    .foregroundColor(.secondary)
+                                
+                                Text("home.add.first.course".localized)
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal, 20)
+                            }
+                            .padding(.vertical, 40)
+                            .frame(maxWidth: .infinity)
                         }
                     }
                     

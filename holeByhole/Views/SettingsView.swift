@@ -113,7 +113,7 @@ struct SettingsView: View {
                             .foregroundColor(.gray)
                         Text("settings.version".localized)
                         Spacer()
-                        Text("1.0.0")
+                        Text("1.1")
                             .foregroundColor(.secondary)
                     }
                 }
@@ -225,7 +225,7 @@ struct AboutView: View {
                     
                     // Version Info
                     VStack(spacing: 8) {
-                        Text("Version 1.0.0")
+                        Text("Version 1.1")
                             .font(.subheadline)
                             .fontWeight(.medium)
                         
