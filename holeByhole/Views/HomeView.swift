@@ -179,7 +179,7 @@ struct HomeView: View {
                     Spacer(minLength: 100)
                 }
             }
-            .navigationTitle("home.title".localized)
+            // .navigationTitle("home.title".localized)
             .onAppear {
                 loadCurrentState()
             }

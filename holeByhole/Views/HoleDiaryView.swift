@@ -22,6 +22,7 @@ struct HoleDiaryView: View {
     @State private var holesToDelete: [GolfHole] = []
     @State private var currentIndex: Int = 0
     @State private var dragOffset: CGFloat = 0
+    @State private var showingFilterMenu = false
     
     var filteredHoles: [GolfHole] {
         var holes = allHoles
@@ -67,40 +68,6 @@ struct HoleDiaryView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                // Filter Section
-        VStack(spacing: 12) {
-                    // Primary Filter
-                Picker("diary.filter".localized, selection: $selectedFilter) {
-                    ForEach(DiaryFilter.allCases, id: \.self) { filter in
-                        Text(filter.displayName).tag(filter)
-                    }
-                }
-                .pickerStyle(SegmentedPickerStyle())
-                .padding(.horizontal)
-                
-                // Secondary Filter
-                if selectedFilter == .byScore {
-                    Picker("diary.filter.by.score".localized, selection: $selectedScoreFilter) {
-                        ForEach(ScoreFilter.allCases, id: \.self) { filter in
-                            Text(filter.displayName).tag(filter)
-                        }
-                    }
-                    .pickerStyle(SegmentedPickerStyle())
-                    .padding(.horizontal)
-                    } else if selectedFilter == .byCourse {
-                    Picker("diary.filter.by.course".localized, selection: $selectedCourseFilter) {
-                        Text("diary.course.filter.all".localized).tag(nil as GolfCourse?)
-                        ForEach(allCourses, id: \.id) { course in
-                            Text(course.name).tag(course as GolfCourse?)
-                        }
-                    }
-                    .pickerStyle(MenuPickerStyle())
-                    .padding(.horizontal)
-                }
-                }
-                .padding(.top, 10)
-                .background(Color(UIColor.systemBackground))
-                
                 if filteredHoles.isEmpty {
                     EmptyDiaryView(filter: selectedFilter)
                 } else {
@@ -110,7 +77,7 @@ struct HoleDiaryView: View {
                             holes: filteredHoles,
                             currentIndex: $currentIndex,
                             dragOffset: $dragOffset,
-            onVideoTap: { video in
+                            onVideoTap: { video in
                                 // 视频在卡片内播放，不需要设置全屏
                             },
                             onDelete: { hole in
@@ -123,21 +90,93 @@ struct HoleDiaryView: View {
                 }
             }
             .navigationTitle("diary.title".localized)
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Menu {
+                        // Primary Filter Section
+                        Section("diary.filter".localized) {
+                            ForEach(DiaryFilter.allCases, id: \.self) { filter in
+                                Button(action: {
+                                    selectedFilter = filter
+                                    currentIndex = 0
+                                    dragOffset = 0
+                                }) {
+                                    HStack {
+                                        Text(filter.displayName)
+                                        if selectedFilter == filter {
+                                            Spacer()
+                                            Image(systemName: "checkmark")
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Score Filter Section (only when byScore is selected)
+                        if selectedFilter == .byScore {
+                            Section("diary.filter.by.score".localized) {
+                                ForEach(ScoreFilter.allCases, id: \.self) { filter in
+                                    Button(action: {
+                                        selectedScoreFilter = filter
+                                        currentIndex = 0
+                                        dragOffset = 0
+                                    }) {
+                                        HStack {
+                                            Text(filter.displayName)
+                                            if selectedScoreFilter == filter {
+                                                Spacer()
+                                                Image(systemName: "checkmark")
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Course Filter Section (only when byCourse is selected)
+                        if selectedFilter == .byCourse {
+                            Section("diary.filter.by.course".localized) {
+                                Button(action: {
+                                    selectedCourseFilter = nil
+                                    currentIndex = 0
+                                    dragOffset = 0
+                                }) {
+                                    HStack {
+                                        Text("diary.course.filter.all".localized)
+                                        if selectedCourseFilter == nil {
+                                            Spacer()
+                                            Image(systemName: "checkmark")
+                                        }
+                                    }
+                                }
+                                
+                                ForEach(allCourses, id: \.id) { course in
+                                    Button(action: {
+                                        selectedCourseFilter = course
+                                        currentIndex = 0
+                                        dragOffset = 0
+                                    }) {
+                                        HStack {
+                                            Text(course.name)
+                                            if selectedCourseFilter?.id == course.id {
+                                                Spacer()
+                                                Image(systemName: "checkmark")
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "line.3.horizontal.decrease.circle")
+                            .font(.title2)
+                    }
+                }
+            }
             .onChange(of: localizationManager.currentLanguage) { _, _ in
                 // Force view refresh when language changes
             }
-            .onChange(of: selectedFilter) { _, _ in
-                currentIndex = 0
-                dragOffset = 0
-            }
-            .onChange(of: selectedScoreFilter) { _, _ in
-                currentIndex = 0
-                dragOffset = 0
-            }
-            .onChange(of: selectedCourseFilter) { _, _ in
-                currentIndex = 0
-            dragOffset = 0
-        }
             .id(localizationManager.currentLanguage)
             .alert("common.delete".localized, isPresented: $showingDeleteAlert) {
                 Button("common.cancel".localized, role: .cancel) { }
@@ -342,12 +381,12 @@ struct DiaryCardView: View {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(String(format: hole.holeSide == .front ? "hole.front.number".localized : "hole.back.number".localized, hole.holeNumber))
-                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                            .font(.custom("Bradley Hand", size: 20).weight(.bold))
                             .foregroundColor(.primary)
                         
                         if let course = hole.course {
                             Text(course.name)
-                                .font(.system(size: 14, weight: .medium, design: .rounded))
+                                .font(.custom("Bradley Hand", size: 14).weight(.medium))
                                 .foregroundColor(.secondary)
                         }
                     }
@@ -357,16 +396,16 @@ struct DiaryCardView: View {
                     VStack(alignment: .trailing, spacing: 4) {
                         if let myStrokes = hole.myStrokes {
                             Text("\(myStrokes)")
-                                .font(.system(size: 28, weight: .bold, design: .rounded))
+                                .font(.custom("Bradley Hand", size: 28).weight(.bold))
                                 .foregroundColor(scoreColor(score: myStrokes, par: hole.par))
                         } else {
                             Text("—")
-                                .font(.system(size: 28, weight: .bold, design: .rounded))
+                                .font(.custom("Bradley Hand", size: 28).weight(.bold))
                                 .foregroundColor(.secondary)
                         }
                         
                         Text(String(format: "diary.card.par".localized + " %d", hole.par))
-                            .font(.system(size: 12, weight: .medium, design: .rounded))
+                            .font(.custom("Bradley Hand", size: 12).weight(.medium))
                             .foregroundColor(.secondary)
                     }
                 }
@@ -408,12 +447,12 @@ struct DiaryCardView: View {
                             Image(systemName: "note.text")
                                 .foregroundColor(.secondary)
                             Text("diary.card.notes".localized)
-                                .font(.system(size: 14, weight: .medium, design: .rounded))
+                                .font(.custom("Bradley Hand", size: 14).weight(.medium))
                                 .foregroundColor(.secondary)
                         }
                         
                         Text(notes)
-                            .font(.system(size: 16, weight: .regular, design: .rounded))
+                            .font(.custom("Bradley Hand", size: 16).weight(.regular))
                             .foregroundColor(.primary)
                             .multilineTextAlignment(.leading)
                             .lineLimit(3)
@@ -433,7 +472,7 @@ struct DiaryCardView: View {
                             Image(systemName: "trash")
                             Text("common.delete".localized)
                         }
-                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .font(.custom("Bradley Hand", size: 14).weight(.medium))
                         .foregroundColor(.red)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
@@ -448,7 +487,7 @@ struct DiaryCardView: View {
                             Image(systemName: "info.circle")
                             Text("common.edit".localized)
                         }
-                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .font(.custom("Bradley Hand", size: 14).weight(.medium))
                         .foregroundColor(.blue)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
@@ -458,13 +497,13 @@ struct DiaryCardView: View {
                 }
             }
             .padding(20)
-            .background(Color(UIColor.systemBackground))
         }
         .background(
             RoundedRectangle(cornerRadius: 20)
-                .fill(Color(UIColor.systemBackground))
+                .fill(Color(UIColor.secondarySystemBackground))
                 .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
         )
+        .clipShape(RoundedRectangle(cornerRadius: 20))
         .onChange(of: isCenter) { _, newIsCenter in
             // 当卡片不再是中心时，停止视频播放
             if !newIsCenter && isPlayingVideo {
@@ -488,11 +527,11 @@ struct InfoCardItem: View {
                 .font(.system(size: 16))
             
             Text(title)
-                .font(.system(size: 12, weight: .medium, design: .rounded))
+                .font(.custom("Bradley Hand", size: 12).weight(.medium))
                 .foregroundColor(.secondary)
             
             Text(value)
-                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .font(.custom("Bradley Hand", size: 14).weight(.semibold))
                 .foregroundColor(.primary)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
@@ -611,11 +650,10 @@ struct EmptyDiaryView: View {
                 .foregroundColor(.secondary)
             
             Text("diary.no.entries.title".localized)
-                .font(.title2)
-                .fontWeight(.semibold)
+                .font(.custom("Bradley Hand", size: 22).weight(.semibold))
             
             Text(emptyMessage)
-                .font(.body)
+                .font(.custom("Bradley Hand", size: 16))
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
